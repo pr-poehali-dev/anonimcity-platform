@@ -36,19 +36,21 @@ export default function Navigation({
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setCurrentPage('home')} 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Icon name="Shield" size={20} className="text-background" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Anonimcity
             </span>
-          </div>
+          </button>
 
           {isAuthenticated && (
             <div className="hidden md:flex items-center gap-1">
               {[
-                { icon: 'Home', label: 'Главная', page: 'home' },
                 { icon: 'Grid', label: 'Объявления', page: 'listings' },
                 { icon: 'FileText', label: 'Мои объявления', page: 'my-listings' },
                 { icon: 'MessageSquare', label: 'Сообщения', page: 'messages' },
