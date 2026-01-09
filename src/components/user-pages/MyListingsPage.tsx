@@ -107,6 +107,23 @@ export default function MyListingsPage() {
                       <Label>Описание</Label>
                       <Textarea placeholder="Подробное описание..." rows={4} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Фото (до 5 штук)</Label>
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          id="premium-photos"
+                        />
+                        <label htmlFor="premium-photos" className="cursor-pointer">
+                          <Icon name="Image" size={40} className="mx-auto mb-3 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mb-1">Нажмите для выбора фото</p>
+                          <p className="text-xs text-muted-foreground">JPG, PNG до 10MB каждое</p>
+                        </label>
+                      </div>
+                    </div>
                     <Button className="w-full">Опубликовать Premium</Button>
                   </TabsContent>
                 </Tabs>
