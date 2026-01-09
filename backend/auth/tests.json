@@ -1,0 +1,62 @@
+{
+  "tests": [
+    {
+      "name": "Register new user",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {
+        "login": "anon_testuser123",
+        "password": "securepass123"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true,
+        "login": "anon_testuser123"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Register duplicate user",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {
+        "login": "anon_testuser123",
+        "password": "securepass123"
+      },
+      "expectedStatus": 409,
+      "expectedBody": {
+        "error": "Login already exists"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login with valid credentials",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {
+        "login": "anon_testuser123",
+        "password": "securepass123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "login": "anon_testuser123"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login with invalid credentials",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {
+        "login": "anon_testuser123",
+        "password": "wrongpassword"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Invalid login or password"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
