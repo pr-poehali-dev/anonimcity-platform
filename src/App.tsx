@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +26,19 @@ function AppContent() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const savedSession = localStorage.getItem('anonimcity_session');
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        setGeneratedCredentials(session);
+        setIsAuthenticated(true);
+      } catch (error) {
+        localStorage.removeItem('anonimcity_session');
+      }
+    }
+  }, []);
+
   const generateCredentials = async () => {
     const login = `anon_${Math.random().toString(36).substr(2, 8)}`;
     const password = Math.random().toString(36).substr(2, 12);
@@ -33,8 +46,10 @@ function AppContent() {
     const result = await registerUser(login, password);
     
     if (result.success) {
-      setGeneratedCredentials({ login, password });
+      const credentials = { login, password };
+      setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
+      localStorage.setItem('anonimcity_session', JSON.stringify(credentials));
       toast({
         title: "Аккаунт создан",
         description: `Логин: ${login}`,
@@ -54,8 +69,10 @@ function AppContent() {
     const result = await loginUser(login, password);
     
     if (result.success) {
-      setGeneratedCredentials({ login, password });
+      const credentials = { login, password };
+      setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
+      localStorage.setItem('anonimcity_session', JSON.stringify(credentials));
       toast({
         title: "Успешный вход",
         description: `Добро пожаловать, ${login}`,
@@ -72,6 +89,7 @@ function AppContent() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setGeneratedCredentials(null);
+    localStorage.removeItem('anonimcity_session');
     toast({
       title: "Выход выполнен",
       description: "Вы вышли из аккаунта",
