@@ -279,19 +279,26 @@ export default function MyListingsPage() {
                             </div>
                           </>
                         ) : (
-                          <div className="flex-1 flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <Icon name="Music" size={18} className="text-primary" />
-                              <span className="text-sm">Аудио: {(audioBlob.size / 1024).toFixed(0)} KB</span>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <Icon name="Music" size={18} className="text-primary" />
+                                <span className="text-sm">Аудио: {(audioBlob.size / 1024).toFixed(0)} KB</span>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={removeAudio}
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
                             </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={removeAudio}
-                            >
-                              <Icon name="Trash2" size={16} />
-                            </Button>
+                            <audio
+                              controls
+                              src={URL.createObjectURL(audioBlob)}
+                              className="w-full"
+                            />
                           </div>
                         )}
                       </div>
