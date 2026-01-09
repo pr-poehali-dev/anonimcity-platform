@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -7,8 +8,6 @@ import Icon from '@/components/ui/icon';
 
 interface NavigationProps {
   isAuthenticated: boolean;
-  currentPage: string;
-  setCurrentPage: (page: 'home' | 'listings' | 'my-listings' | 'messages' | 'files' | 'profile' | 'wallet' | 'support' | 'settings') => void;
   onLogin: () => void;
   onExistingLogin: (login: string, password: string) => void;
   onLogout: () => void;
@@ -16,8 +15,6 @@ interface NavigationProps {
 
 export default function Navigation({ 
   isAuthenticated, 
-  currentPage, 
-  setCurrentPage, 
   onLogin,
   onExistingLogin, 
   onLogout 
@@ -25,6 +22,7 @@ export default function Navigation({
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [loginInput, setLoginInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const location = useLocation();
 
   const handleExistingLogin = () => {
     onExistingLogin(loginInput, passwordInput);
@@ -36,8 +34,8 @@ export default function Navigation({
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <button 
-            onClick={() => setCurrentPage('home')} 
+          <Link 
+            to="/" 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
@@ -51,21 +49,23 @@ export default function Navigation({
           {isAuthenticated && (
             <div className="hidden md:flex items-center gap-1">
               {[
-                { icon: 'Grid', label: 'Объявления', page: 'listings' },
-                { icon: 'FileText', label: 'Мои объявления', page: 'my-listings' },
-                { icon: 'MessageSquare', label: 'Сообщения', page: 'messages' },
-                { icon: 'FolderOpen', label: 'Файлы', page: 'files' },
-                { icon: 'Wallet', label: 'Кошелек', page: 'wallet' }
+                { icon: 'Grid', label: 'Объявления', path: '/listings' },
+                { icon: 'FileText', label: 'Мои объявления', path: '/my-listings' },
+                { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
+                { icon: 'FolderOpen', label: 'Файлы', path: '/files' },
+                { icon: 'Wallet', label: 'Кошелек', path: '/wallet' }
               ].map((item) => (
                 <Button
-                  key={item.page}
-                  variant={currentPage === item.page ? 'default' : 'ghost'}
+                  key={item.path}
+                  variant={location.pathname === item.path ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setCurrentPage(item.page as any)}
+                  asChild
                   className="gap-2"
                 >
-                  <Icon name={item.icon as any} size={16} />
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <Link to={item.path}>
+                    <Icon name={item.icon as any} size={16} />
+                    <span className="hidden lg:inline">{item.label}</span>
+                  </Link>
                 </Button>
               ))}
             </div>
@@ -74,11 +74,15 @@ export default function Navigation({
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Button variant="ghost" size="sm" onClick={() => setCurrentPage('settings')}>
-                  <Icon name="Settings" size={18} />
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/settings">
+                    <Icon name="Settings" size={18} />
+                  </Link>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setCurrentPage('support')}>
-                  <Icon name="HelpCircle" size={18} />
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/support">
+                    <Icon name="HelpCircle" size={18} />
+                  </Link>
                 </Button>
                 <Button variant="outline" size="sm" onClick={onLogout} className="gap-2">
                   <Icon name="LogOut" size={16} />
