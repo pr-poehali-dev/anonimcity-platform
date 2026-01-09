@@ -5,9 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFileToS3 } from '@/lib/mediaUpload';
 
 interface MediaItem {
   id: string;
@@ -30,27 +32,57 @@ export default function MarketplacePage() {
   const [uploadDescription, setUploadDescription] = useState('');
   const [uploadPrice, setUploadPrice] = useState('');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleUpload = () => {
-    if (!uploadTitle || !uploadDescription || !uploadPrice) {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!uploadTitle || !uploadDescription || !uploadPrice || !selectedFile) {
       toast({
         title: "Ошибка",
-        description: "Заполните все поля",
+        description: "Заполните все поля и выберите файл",
         variant: "destructive"
       });
       return;
     }
 
-    const newId = generateId();
-    toast({
-      title: "Контент загружен",
-      description: `ID: ${newId}`,
-    });
+    setIsUploading(true);
+    setUploadProgress(0);
 
-    setUploadTitle('');
-    setUploadDescription('');
-    setUploadPrice('');
-    setUploadDialogOpen(false);
+    try {
+      const cdnUrl = await uploadFileToS3(selectedFile, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      const newId = generateId();
+      
+      toast({
+        title: "Контент загружен",
+        description: `ID: ${newId}`,
+      });
+
+      setUploadTitle('');
+      setUploadDescription('');
+      setUploadPrice('');
+      setSelectedFile(null);
+      setUploadProgress(0);
+      setUploadDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Ошибка загрузки",
+        description: error instanceof Error ? error.message : "Не удалось загрузить файл",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const mockMediaItems: MediaItem[] = [
@@ -135,19 +167,58 @@ export default function MarketplacePage() {
                     placeholder="500"
                     value={uploadPrice}
                     onChange={(e) => setUploadPrice(e.target.value)}
+                    disabled={isUploading}
                   />
                 </div>
 
-                <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                  <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mb-2">Нажмите или перетащите файлы</p>
-                  <p className="text-xs text-muted-foreground">Фото: JPG, PNG | Видео: MP4, MOV | Аудио: MP3, WAV</p>
-                  <p className="text-xs text-muted-foreground mt-1">До 50MB</p>
+                <div className="space-y-2">
+                  <Label>Файл</Label>
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*,video/*,audio/*"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                      {selectedFile ? (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">{selectedFile.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-muted-foreground mb-2">Нажмите для выбора файла</p>
+                          <p className="text-xs text-muted-foreground">Фото: JPG, PNG | Видео: MP4, MOV | Аудио: MP3, WAV</p>
+                          <p className="text-xs text-muted-foreground mt-1">До 1GB</p>
+                        </>
+                      )}
+                    </label>
+                  </div>
                 </div>
 
-                <Button className="w-full gap-2" onClick={handleUpload}>
+                {isUploading && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Загрузка...</span>
+                      <span className="font-medium">{uploadProgress}%</span>
+                    </div>
+                    <Progress value={uploadProgress} />
+                  </div>
+                )}
+
+                <Button 
+                  className="w-full gap-2" 
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                >
                   <Icon name="ShoppingBag" size={16} />
-                  Выставить на продажу
+                  {isUploading ? 'Загрузка...' : 'Выставить на продажу'}
                 </Button>
               </div>
             </DialogContent>

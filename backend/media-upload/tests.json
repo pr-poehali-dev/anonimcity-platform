@@ -1,0 +1,45 @@
+{
+  "tests": [
+    {
+      "name": "Get presigned URL for video upload",
+      "method": "POST",
+      "body": {
+        "filename": "test-video.mp4",
+        "content_type": "video/mp4"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "upload_url": "string",
+        "file_key": "string",
+        "cdn_url": "string",
+        "expires_in": 3600
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get presigned URL for image upload",
+      "method": "POST",
+      "body": {
+        "filename": "photo.jpg",
+        "content_type": "image/jpeg"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "upload_url": "string",
+        "file_key": "string",
+        "cdn_url": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing filename error",
+      "method": "POST",
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
