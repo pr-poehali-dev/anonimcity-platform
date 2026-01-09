@@ -89,19 +89,91 @@ export default function UserPages({ page, generatedCredentials, twoFactorEnabled
       <div className="min-h-screen pt-24 pb-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Файлы</h1>
-            <Button className="gap-2">
-              <Icon name="Upload" size={16} />
-              Загрузить файл
-            </Button>
+            <h1 className="text-3xl font-bold">Фото и Видео</h1>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Icon name="Upload" size={16} />
+                  Загрузить файлы
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Загрузить фото и видео</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
+                    <Icon name="ImagePlus" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-2">Нажмите или перетащите файлы</p>
+                    <p className="text-xs text-muted-foreground">JPG, PNG, GIF, MP4, MOV до 50MB</p>
+                  </div>
+                  <Button className="w-full gap-2">
+                    <Icon name="Upload" size={16} />
+                    Загрузить
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
-          <Card className="p-8 text-center">
-            <div className="flex flex-col items-center gap-4 text-muted-foreground">
-              <Icon name="FolderOpen" size={48} />
-              <p>У вас пока нет файлов</p>
-              <Button variant="outline">Загрузить первый файл</Button>
-            </div>
-          </Card>
+
+          <Tabs defaultValue="all" className="mb-6">
+            <TabsList>
+              <TabsTrigger value="all">Все файлы</TabsTrigger>
+              <TabsTrigger value="photos">Фото</TabsTrigger>
+              <TabsTrigger value="videos">Видео</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-6">
+              <Card className="p-8 text-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Icon name="FolderOpen" size={48} />
+                  <p>У вас пока нет загруженных файлов</p>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="gap-2">
+                        <Icon name="Upload" size={16} />
+                        Загрузить первый файл
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Загрузить фото и видео</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
+                          <Icon name="ImagePlus" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mb-2">Нажмите или перетащите файлы</p>
+                          <p className="text-xs text-muted-foreground">JPG, PNG, GIF, MP4, MOV до 50MB</p>
+                        </div>
+                        <Button className="w-full gap-2">
+                          <Icon name="Upload" size={16} />
+                          Загрузить
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="photos" className="mt-6">
+              <Card className="p-8 text-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Icon name="Image" size={48} />
+                  <p>Фотографии не найдены</p>
+                </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="videos" className="mt-6">
+              <Card className="p-8 text-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Icon name="Video" size={48} />
+                  <p>Видео не найдены</p>
+                </div>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
