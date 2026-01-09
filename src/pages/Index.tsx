@@ -66,6 +66,13 @@ export default function Index() {
     setIsAuthenticated(true);
   };
 
+  const handleExistingLogin = (login: string, password: string) => {
+    if (login && password) {
+      setGeneratedCredentials({ login, password });
+      setIsAuthenticated(true);
+    }
+  };
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setGeneratedCredentials(null);
@@ -100,7 +107,8 @@ export default function Index() {
         isAuthenticated={isAuthenticated} 
         currentPage={currentPage} 
         setCurrentPage={setCurrentPage} 
-        onLogin={generateCredentials} 
+        onLogin={generateCredentials}
+        onExistingLogin={handleExistingLogin} 
         onLogout={handleLogout} 
       />
       {renderPage()}

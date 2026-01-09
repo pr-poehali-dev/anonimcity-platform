@@ -1,4 +1,8 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 
 interface NavigationProps {
@@ -6,6 +10,7 @@ interface NavigationProps {
   currentPage: string;
   setCurrentPage: (page: 'home' | 'listings' | 'my-listings' | 'messages' | 'profile' | 'wallet' | 'support' | 'settings') => void;
   onLogin: () => void;
+  onExistingLogin: (login: string, password: string) => void;
   onLogout: () => void;
 }
 
@@ -13,9 +18,20 @@ export default function Navigation({
   isAuthenticated, 
   currentPage, 
   setCurrentPage, 
-  onLogin, 
+  onLogin,
+  onExistingLogin, 
   onLogout 
 }: NavigationProps) {
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [loginInput, setLoginInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+
+  const handleExistingLogin = () => {
+    onExistingLogin(loginInput, passwordInput);
+    setLoginDialogOpen(false);
+    setLoginInput('');
+    setPasswordInput('');
+  };
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
@@ -67,10 +83,48 @@ export default function Navigation({
                 </Button>
               </>
             ) : (
-              <Button onClick={onLogin} className="gap-2">
-                <Icon name="UserPlus" size={16} />
-                Войти
-              </Button>
+              <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Icon name="LogIn" size={16} />
+                    Войти
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Вход в аккаунт</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Логин</Label>
+                      <Input 
+                        placeholder="anon_xxxxxxxx" 
+                        value={loginInput}
+                        onChange={(e) => setLoginInput(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Пароль</Label>
+                      <Input 
+                        type="password" 
+                        placeholder="Введите пароль"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleExistingLogin} className="flex-1 gap-2">
+                        <Icon name="LogIn" size={16} />
+                        Войти
+                      </Button>
+                      <Button onClick={onLogin} variant="outline" className="flex-1 gap-2">
+                        <Icon name="UserPlus" size={16} />
+                        Создать новый
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </div>
