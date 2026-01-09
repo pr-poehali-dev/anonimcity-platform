@@ -44,7 +44,7 @@ export default function Navigation({
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Anonimcity
             </span>
-          </button>
+          </Link>
 
           {isAuthenticated && (
             <div className="hidden md:flex items-center gap-1">
