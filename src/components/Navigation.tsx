@@ -52,7 +52,7 @@ export default function Navigation({
                 { icon: 'Grid', label: 'Объявления', path: '/listings' },
                 { icon: 'FileText', label: 'Мои объявления', path: '/my-listings' },
                 { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
-                { icon: 'FolderOpen', label: 'Файлы', path: '/files' },
+                { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
                 { icon: 'Wallet', label: 'Кошелек', path: '/wallet' }
               ].map((item) => (
                 <Button
