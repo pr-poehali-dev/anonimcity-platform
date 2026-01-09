@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navigation from "./components/Navigation";
 import Home from "./pages/Home";
 import Listings from "./pages/Listings";
+import CreateListing from "./pages/CreateListing";
 import MyListings from "./pages/MyListings";
 import Messages from "./pages/Messages";
 import Files from "./pages/Files";
@@ -114,6 +115,9 @@ function AppContent() {
         } />
         <Route path="/listings" element={
           isAuthenticated ? <Listings /> : <Navigate to="/" replace />
+        } />
+        <Route path="/create-listing" element={
+          isAuthenticated ? <CreateListing /> : <Navigate to="/" replace />
         } />
         <Route path="/my-listings" element={
           isAuthenticated ? <MyListings generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
