@@ -6,11 +6,56 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
+interface MediaItem {
+  id: string;
+  type: 'video' | 'photo' | 'audio';
+  title: string;
+  description: string;
+  price: number;
+  preview: string;
+  author: string;
+  isPremium: boolean;
+  duration?: string;
+  count?: number;
+}
+
+const generateId = () => `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export default function MarketplacePage() {
-  const mockMediaItems = [
+  const { toast } = useToast();
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadPrice, setUploadPrice] = useState('');
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
+  const handleUpload = () => {
+    if (!uploadTitle || !uploadDescription || !uploadPrice) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все поля",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newId = generateId();
+    toast({
+      title: "Контент загружен",
+      description: `ID: ${newId}`,
+    });
+
+    setUploadTitle('');
+    setUploadDescription('');
+    setUploadPrice('');
+    setUploadDialogOpen(false);
+  };
+
+  const mockMediaItems: MediaItem[] = [
     {
-      id: 1,
+      id: 'media_1735980000_abc123xyz',
       type: 'video',
       title: 'Приватное видео #1',
       description: 'Эксклюзивный контент',
@@ -21,7 +66,7 @@ export default function MarketplacePage() {
       duration: '5:30'
     },
     {
-      id: 2,
+      id: 'media_1735980100_def456uvw',
       type: 'photo',
       title: 'Фотосет "Вечер"',
       description: '15 фотографий',
@@ -32,7 +77,7 @@ export default function MarketplacePage() {
       count: 15
     },
     {
-      id: 3,
+      id: 'media_1735980200_ghi789rst',
       type: 'audio',
       title: 'Голосовое сообщение',
       description: 'Приватная запись',
@@ -52,7 +97,7 @@ export default function MarketplacePage() {
             <h1 className="text-3xl font-bold">Магазин контента</h1>
             <p className="text-muted-foreground mt-1">Покупайте и продавайте эксклюзивный контент</p>
           </div>
-          <Dialog>
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Icon name="Upload" size={16} />
@@ -66,17 +111,31 @@ export default function MarketplacePage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Название</Label>
-                  <Input placeholder="Например: Приватное видео" />
+                  <Input 
+                    placeholder="Например: Приватное видео" 
+                    value={uploadTitle}
+                    onChange={(e) => setUploadTitle(e.target.value)}
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label>Описание</Label>
-                  <Textarea placeholder="Краткое описание контента..." rows={3} />
+                  <Textarea 
+                    placeholder="Краткое описание контента..." 
+                    rows={3}
+                    value={uploadDescription}
+                    onChange={(e) => setUploadDescription(e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Цена (₽)</Label>
-                  <Input type="number" placeholder="500" />
+                  <Input 
+                    type="number" 
+                    placeholder="500"
+                    value={uploadPrice}
+                    onChange={(e) => setUploadPrice(e.target.value)}
+                  />
                 </div>
 
                 <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
@@ -86,7 +145,7 @@ export default function MarketplacePage() {
                   <p className="text-xs text-muted-foreground mt-1">До 50MB</p>
                 </div>
 
-                <Button className="w-full gap-2">
+                <Button className="w-full gap-2" onClick={handleUpload}>
                   <Icon name="ShoppingBag" size={16} />
                   Выставить на продажу
                 </Button>
@@ -193,47 +252,10 @@ export default function MarketplacePage() {
               <div className="flex flex-col items-center gap-4 text-muted-foreground">
                 <Icon name="Package" size={48} />
                 <p>У вас нет контента на продаже</p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <Icon name="Upload" size={16} />
-                      Загрузить первый контент
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-xl">
-                    <DialogHeader>
-                      <DialogTitle>Загрузить контент на продажу</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Название</Label>
-                        <Input placeholder="Например: Приватное видео" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Описание</Label>
-                        <Textarea placeholder="Краткое описание контента..." rows={3} />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Цена (₽)</Label>
-                        <Input type="number" placeholder="500" />
-                      </div>
-
-                      <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                        <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-2">Нажмите или перетащите файлы</p>
-                        <p className="text-xs text-muted-foreground">Фото: JPG, PNG | Видео: MP4, MOV | Аудио: MP3, WAV</p>
-                        <p className="text-xs text-muted-foreground mt-1">До 50MB</p>
-                      </div>
-
-                      <Button className="w-full gap-2">
-                        <Icon name="ShoppingBag" size={16} />
-                        Выставить на продажу
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Button className="gap-2" onClick={() => setUploadDialogOpen(true)}>
+                  <Icon name="Upload" size={16} />
+                  Загрузить первый контент
+                </Button>
               </div>
             </Card>
           </TabsContent>
