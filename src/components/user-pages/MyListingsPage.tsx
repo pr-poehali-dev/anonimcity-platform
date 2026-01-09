@@ -7,10 +7,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MyListingsPage() {
+  const { toast } = useToast();
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -20,6 +27,83 @@ export default function MyListingsPage() {
 
   const removePhoto = (index: number) => {
     setSelectedPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        if (blob.size <= 1024 * 1024) {
+          setAudioBlob(blob);
+        } else {
+          toast({
+            title: "Файл слишком большой",
+            description: "Аудио не должно превышать 1MB",
+            variant: "destructive"
+          });
+        }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= 30) {
+            stopRecording();
+            return 30;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (error) {
+      toast({
+        title: "Ошибка доступа к микрофону",
+        description: "Разрешите доступ к микрофону",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    }
+  };
+
+  const handleAudioFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size <= 1024 * 1024) {
+        setAudioBlob(file);
+      } else {
+        toast({
+          title: "Файл слишком большой",
+          description: "Аудио не должно превышать 1MB",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const removeAudio = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
   };
   return (
     <div className="min-h-screen pt-24 pb-12">
@@ -160,6 +244,57 @@ export default function MyListingsPage() {
                           ))}
                         </div>
                       )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Аудиоприветствие (до 30 сек, макс 1MB)</Label>
+                      <div className="flex gap-2">
+                        {!audioBlob ? (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="flex-1 gap-2"
+                              onClick={isRecording ? stopRecording : startRecording}
+                            >
+                              <Icon name={isRecording ? "Square" : "Mic"} size={18} />
+                              {isRecording ? `Остановить (${recordingTime}с)` : 'Записать'}
+                            </Button>
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept="audio/*"
+                                className="hidden"
+                                id="audio-file"
+                                onChange={handleAudioFileSelect}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="gap-2"
+                                onClick={() => document.getElementById('audio-file')?.click()}
+                              >
+                                <Icon name="Upload" size={18} />
+                                Загрузить
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex-1 flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <Icon name="Music" size={18} className="text-primary" />
+                              <span className="text-sm">Аудио: {(audioBlob.size / 1024).toFixed(0)} KB</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={removeAudio}
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <Button className="w-full">Опубликовать Premium</Button>
                   </TabsContent>
