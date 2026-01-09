@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -9,6 +10,10 @@ interface HomePageProps {
 }
 
 export default function HomePage({ isAuthenticated, generatedCredentials, onLogin }: HomePageProps) {
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} скопирован`);
+  };
   return (
     <div className="min-h-screen pt-24 pb-12">
       <div className="container mx-auto px-4">
@@ -50,13 +55,33 @@ export default function HomePage({ isAuthenticated, generatedCredentials, onLogi
                   <h3 className="text-xl font-bold">Ваши учетные данные</h3>
                 </div>
                 <div className="space-y-3 bg-background/50 p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center gap-3">
                     <span className="text-muted-foreground">Логин:</span>
-                    <code className="text-primary font-mono">{generatedCredentials.login}</code>
+                    <div className="flex items-center gap-2">
+                      <code className="text-primary font-mono">{generatedCredentials.login}</code>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => copyToClipboard(generatedCredentials.login, 'Логин')}
+                      >
+                        <Icon name="Copy" size={14} />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center gap-3">
                     <span className="text-muted-foreground">Пароль:</span>
-                    <code className="text-primary font-mono">{generatedCredentials.password}</code>
+                    <div className="flex items-center gap-2">
+                      <code className="text-primary font-mono">{generatedCredentials.password}</code>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => copyToClipboard(generatedCredentials.password, 'Пароль')}
+                      >
+                        <Icon name="Copy" size={14} />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-amber-500">
