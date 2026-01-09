@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
 export default function MyListingsPage() {
@@ -30,13 +32,81 @@ export default function MyListingsPage() {
                     <TabsTrigger value="premium">Платное (Premium)</TabsTrigger>
                   </TabsList>
                   <TabsContent value="free" className="space-y-4 mt-4">
-                    <Input placeholder="Заголовок" />
-                    <Textarea placeholder="Описание..." rows={4} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Псевдоним</Label>
+                        <Input placeholder="Например: Анна" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Пол</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="female">Женский</SelectItem>
+                            <SelectItem value="male">Мужской</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Возраст</Label>
+                        <Input type="number" placeholder="25" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Город</Label>
+                        <Input placeholder="Москва" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Заголовок</Label>
+                      <Input placeholder="Краткое описание услуги" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Описание</Label>
+                      <Textarea placeholder="Подробное описание..." rows={4} />
+                    </div>
                     <Button className="w-full">Опубликовать</Button>
                   </TabsContent>
                   <TabsContent value="premium" className="space-y-4 mt-4">
-                    <Input placeholder="Заголовок" />
-                    <Textarea placeholder="Описание..." rows={4} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Псевдоним</Label>
+                        <Input placeholder="Например: Анна" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Пол</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="female">Женский</SelectItem>
+                            <SelectItem value="male">Мужской</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Возраст</Label>
+                        <Input type="number" placeholder="25" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Город</Label>
+                        <Input placeholder="Москва" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Заголовок</Label>
+                      <Input placeholder="Краткое описание услуги" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Описание</Label>
+                      <Textarea placeholder="Подробное описание..." rows={4} />
+                    </div>
                     <Button className="w-full">Опубликовать Premium</Button>
                   </TabsContent>
                 </Tabs>
