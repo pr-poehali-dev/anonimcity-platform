@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 
 interface UserPagesProps {
-  page: 'my-listings' | 'messages' | 'profile' | 'wallet' | 'support' | 'settings';
+  page: 'my-listings' | 'messages' | 'files' | 'profile' | 'wallet' | 'support' | 'settings';
   generatedCredentials: { login: string; password: string } | null;
   twoFactorEnabled: boolean;
   setTwoFactorEnabled: (enabled: boolean) => void;
@@ -77,6 +77,29 @@ export default function UserPages({ page, generatedCredentials, twoFactorEnabled
             <div className="flex flex-col items-center gap-4 text-muted-foreground">
               <Icon name="MessageSquare" size={48} />
               <p>У вас пока нет сообщений</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (page === 'files') {
+    return (
+      <div className="min-h-screen pt-24 pb-12">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold">Файлы</h1>
+            <Button className="gap-2">
+              <Icon name="Upload" size={16} />
+              Загрузить файл
+            </Button>
+          </div>
+          <Card className="p-8 text-center">
+            <div className="flex flex-col items-center gap-4 text-muted-foreground">
+              <Icon name="FolderOpen" size={48} />
+              <p>У вас пока нет файлов</p>
+              <Button variant="outline">Загрузить первый файл</Button>
             </div>
           </Card>
         </div>

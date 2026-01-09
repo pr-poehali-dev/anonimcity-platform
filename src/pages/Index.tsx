@@ -54,7 +54,7 @@ const mockListings: Listing[] = [
 ];
 
 export default function Index() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'listings' | 'my-listings' | 'messages' | 'profile' | 'wallet' | 'support' | 'settings'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'listings' | 'my-listings' | 'messages' | 'files' | 'profile' | 'wallet' | 'support' | 'settings'>('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -91,6 +91,7 @@ export default function Index() {
         return <ListingsPage listings={mockListings} />;
       case 'my-listings':
       case 'messages':
+      case 'files':
       case 'profile':
       case 'wallet':
       case 'support':

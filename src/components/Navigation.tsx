@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 interface NavigationProps {
   isAuthenticated: boolean;
   currentPage: string;
-  setCurrentPage: (page: 'home' | 'listings' | 'my-listings' | 'messages' | 'profile' | 'wallet' | 'support' | 'settings') => void;
+  setCurrentPage: (page: 'home' | 'listings' | 'my-listings' | 'messages' | 'files' | 'profile' | 'wallet' | 'support' | 'settings') => void;
   onLogin: () => void;
   onExistingLogin: (login: string, password: string) => void;
   onLogout: () => void;
@@ -52,6 +52,7 @@ export default function Navigation({
                 { icon: 'Grid', label: 'Объявления', page: 'listings' },
                 { icon: 'FileText', label: 'Мои объявления', page: 'my-listings' },
                 { icon: 'MessageSquare', label: 'Сообщения', page: 'messages' },
+                { icon: 'FolderOpen', label: 'Файлы', page: 'files' },
                 { icon: 'Wallet', label: 'Кошелек', page: 'wallet' }
               ].map((item) => (
                 <Button
