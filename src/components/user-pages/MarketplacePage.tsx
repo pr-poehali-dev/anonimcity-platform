@@ -180,7 +180,6 @@ export default function MarketplacePage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">{item.title}</h3>
                         <p className="text-sm text-muted-foreground truncate">{item.description}</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1 font-mono truncate">ID: {item.id}</p>
                       </div>
                       {item.isPremium && (
                         <Icon name="Crown" size={18} className="text-yellow-500 flex-shrink-0" />
@@ -226,6 +225,10 @@ export default function MarketplacePage() {
                             <div className="p-4 border rounded-lg">
                               <h3 className="font-semibold mb-2">{item.title}</h3>
                               <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-muted-foreground">ID:</span>
+                                <span className="text-xs font-mono text-muted-foreground">{item.id}</span>
+                              </div>
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Цена:</span>
                                 <span className="font-bold text-xl">{item.price} ₽</span>
