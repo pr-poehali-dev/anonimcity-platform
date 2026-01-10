@@ -3,12 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
 export default function ModelProfile() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { toast } = useToast();
+
+  const [messageDialog, setMessageDialog] = useState(false);
+  const [messageText, setMessageText] = useState('');
 
   const [model] = useState({
     id: Number(id) || 1,
@@ -62,6 +70,25 @@ export default function ModelProfile() {
     { id: 4, type: 'payment', amount: 1500, description: 'Оплата услуги "Виртуальное общение"', date: '2024-01-07 20:15', status: 'completed' },
   ]);
 
+  const handleSendMessage = () => {
+    if (!messageText.trim()) {
+      toast({
+        title: "Ошибка",
+        description: "Введите текст сообщения",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Сообщение отправлено",
+      description: `Сообщение доставлено пользователю ${model.name}`,
+    });
+
+    setMessageText('');
+    setMessageDialog(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
@@ -81,7 +108,12 @@ export default function ModelProfile() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setMessageDialog(true)}
+              >
                 <Icon name="MessageCircle" size={16} />
                 Написать
               </Button>
@@ -379,6 +411,53 @@ export default function ModelProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={messageDialog} onOpenChange={setMessageDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Отправить сообщение модели</DialogTitle>
+            <DialogDescription>
+              Сообщение будет доставлено в личные сообщения пользователя {model.name} ({model.login})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="message">Текст сообщения</Label>
+              <Textarea
+                id="message"
+                placeholder="Введите текст сообщения от администрации..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                rows={6}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Сообщение отправится от имени администрации платформы
+              </p>
+            </div>
+            <div className="flex items-start gap-3 p-3 border rounded-lg bg-muted/50">
+              <Icon name="Info" size={20} className="text-primary flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium mb-1">Правила отправки сообщений:</p>
+                <ul className="text-muted-foreground space-y-1">
+                  <li>• Сообщение появится в разделе "Сообщения" пользователя</li>
+                  <li>• Пользователь получит уведомление о новом сообщении</li>
+                  <li>• Отправитель будет указан как "Администрация Anonimcity"</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMessageDialog(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleSendMessage} className="gap-2">
+              <Icon name="Send" size={16} />
+              Отправить сообщение
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
