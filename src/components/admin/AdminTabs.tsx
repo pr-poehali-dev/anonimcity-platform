@@ -5,6 +5,7 @@ import AdminContentTabs from './tabs/AdminContentTabs';
 import AdminUsersTab from './tabs/AdminUsersTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import AdminMessagesTab from './tabs/AdminMessagesTab';
+import AdminResponsesTab from './tabs/AdminResponsesTab';
 import type { Category, Listing } from './AdminDialogs';
 import type { Model } from './tabs/AdminContentTabs';
 
@@ -13,6 +14,7 @@ interface AdminTabsProps {
   setSelectedTab: (value: string) => void;
   pendingListings: Listing[];
   activeListings: Listing[];
+  allListings: Listing[];
   categories: Category[];
   recentUsers: Array<{ id: number; login: string; registered: string; status: string }>;
   openViewListing: (listing: Listing) => void;
@@ -34,6 +36,7 @@ export default function AdminTabs({
   setSelectedTab,
   pendingListings,
   activeListings,
+  allListings,
   categories,
   recentUsers,
   openViewListing,
@@ -51,7 +54,7 @@ export default function AdminTabs({
 }: AdminTabsProps) {
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-7">
+      <TabsList className="grid w-full grid-cols-8">
         <TabsTrigger value="moderation" className="gap-2">
           <Icon name="Shield" size={16} />
           <span className="hidden sm:inline">Модерация</span>
@@ -75,6 +78,10 @@ export default function AdminTabs({
         <TabsTrigger value="messages" className="gap-2">
           <Icon name="Mail" size={16} />
           <span className="hidden sm:inline">Сообщения</span>
+        </TabsTrigger>
+        <TabsTrigger value="responses" className="gap-2">
+          <Icon name="MessageSquare" size={16} />
+          <span className="hidden sm:inline">Ответы</span>
         </TabsTrigger>
         <TabsTrigger value="settings" className="gap-2">
           <Icon name="Settings" size={16} />
@@ -106,6 +113,8 @@ export default function AdminTabs({
       <AdminUsersTab recentUsers={recentUsers} />
 
       <AdminMessagesTab models={models} />
+
+      <AdminResponsesTab listings={allListings} />
 
       <AdminSettingsTab />
     </Tabs>

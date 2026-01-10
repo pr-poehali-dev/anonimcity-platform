@@ -292,6 +292,7 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
           setSelectedTab={setSelectedTab}
           pendingListings={pendingListings}
           activeListings={activeListings}
+          allListings={listings}
           categories={categories}
           recentUsers={recentUsers}
           openViewListing={openViewListing}
