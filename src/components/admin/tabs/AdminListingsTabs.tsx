@@ -13,6 +13,7 @@ interface AdminListingsTabsProps {
   handleReject: (id: number) => void;
   openEditListing: (listing: Listing) => void;
   handleDeleteListing: (id: number) => void;
+  onCreateListing: () => void;
 }
 
 export default function AdminListingsTabs({
@@ -23,6 +24,7 @@ export default function AdminListingsTabs({
   handleReject,
   openEditListing,
   handleDeleteListing,
+  onCreateListing,
 }: AdminListingsTabsProps) {
   return (
     <>
@@ -96,8 +98,12 @@ export default function AdminListingsTabs({
 
       <TabsContent value="listings" className="space-y-4">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Все объявления ({activeListings.length} активных)</CardTitle>
+            <Button onClick={onCreateListing} className="gap-2">
+              <Icon name="Plus" size={16} />
+              Создать объявление
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

@@ -26,6 +26,7 @@ interface AdminTabsProps {
   onCreateModel: (model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
   onUpdateModel: (id: number, model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
   onDeleteModel: (id: number) => void;
+  onCreateListing: () => void;
 }
 
 export default function AdminTabs({
@@ -46,6 +47,7 @@ export default function AdminTabs({
   onCreateModel,
   onUpdateModel,
   onDeleteModel,
+  onCreateListing,
 }: AdminTabsProps) {
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
@@ -88,6 +90,7 @@ export default function AdminTabs({
         handleReject={handleReject}
         openEditListing={openEditListing}
         handleDeleteListing={handleDeleteListing}
+        onCreateListing={onCreateListing}
       />
 
       <AdminContentTabs

@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminTabs from '@/components/admin/AdminTabs';
 import AdminDialogs, { type Category, type Listing } from '@/components/admin/AdminDialogs';
+import CreateListingDialog from '@/components/admin/dialogs/CreateListingDialog';
 import type { Model } from '@/components/admin/tabs/AdminContentTabs';
 
 interface AdminDashboardProps {
@@ -73,6 +74,7 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   const [viewDialog, setViewDialog] = useState(false);
   const [viewingListing, setViewingListing] = useState<Listing | null>(null);
   const [selectedTab, setSelectedTab] = useState('moderation');
+  const [createListingDialog, setCreateListingDialog] = useState(false);
 
   const handleLogout = () => {
     onAdminLogout();
@@ -192,6 +194,48 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     toast({ title: "Объявление обновлено", description: "Изменения сохранены" });
   };
 
+  const handleCreateListing = (listingData: {
+    modelId: number;
+    title: string;
+    description: string;
+    category: string;
+    price: string;
+    isPremium: boolean;
+    status: 'active' | 'pending';
+  }) => {
+    const model = models.find(m => m.id === listingData.modelId);
+    if (!model) return;
+
+    const newListing: Listing = {
+      id: Date.now(),
+      title: listingData.title,
+      description: listingData.description,
+      author: model.login,
+      created: new Date().toLocaleString('ru-RU', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).replace(',', ''),
+      type: listingData.isPremium ? 'premium' : 'regular',
+      category: listingData.category,
+      price: Number(listingData.price),
+      status: listingData.status,
+    };
+
+    setListings([newListing, ...listings]);
+    setCreateListingDialog(false);
+    toast({ 
+      title: "Объявление создано", 
+      description: `${listingData.isPremium ? 'Premium' : 'Обычное'} объявление "успешно создано" для ${model.name}` 
+    });
+  };
+
+  const openCreateListingDialog = () => {
+    setCreateListingDialog(true);
+  };
+
   const pendingListings = listings.filter(l => l.status === 'pending');
   const activeListings = listings.filter(l => l.status === 'active');
 
@@ -259,6 +303,7 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
           onCreateModel={handleCreateModel}
           onUpdateModel={handleUpdateModel}
           onDeleteModel={handleDeleteModel}
+          onCreateListing={openCreateListingDialog}
         />
       </div>
 
@@ -280,6 +325,13 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
         viewingListing={viewingListing}
         handleApprove={handleApprove}
         handleReject={handleReject}
+      />
+
+      <CreateListingDialog
+        open={createListingDialog}
+        onOpenChange={setCreateListingDialog}
+        models={models}
+        onSubmit={handleCreateListing}
       />
     </div>
   );
