@@ -101,9 +101,13 @@ export default function AdminMessagesTab({ models }: AdminMessagesTabProps) {
     },
   ]);
 
+  // Фильтруем сообщения только для моделей, созданных через админку
+  const adminModelIds = models.map(m => m.id);
+  const messagesForAdminModels = messages.filter(m => adminModelIds.includes(m.modelId));
+
   const filteredMessages = selectedModel === 'all' 
-    ? messages 
-    : messages.filter(m => m.modelId === Number(selectedModel));
+    ? messagesForAdminModels 
+    : messagesForAdminModels.filter(m => m.modelId === Number(selectedModel));
 
   const getStatusBadge = (status: Message['status']) => {
     const variants = {
@@ -167,7 +171,7 @@ export default function AdminMessagesTab({ models }: AdminMessagesTabProps) {
     setReplyText('');
   };
 
-  const newMessagesCount = messages.filter(m => m.status === 'new').length;
+  const newMessagesCount = messagesForAdminModels.filter(m => m.status === 'new').length;
 
   return (
     <TabsContent value="messages" className="space-y-6">
