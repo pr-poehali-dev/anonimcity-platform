@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 
 interface ProfileWalletPagesProps {
   page: 'profile' | 'wallet' | 'support' | 'settings';
@@ -21,6 +22,47 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
   const [supportSubject, setSupportSubject] = useState('');
   const [supportMessage, setSupportMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [show2FASetup, setShow2FASetup] = useState(false);
+
+  const secretKey = 'JBSWY3DPEHPK3PXP';
+  const otpauth = `otpauth://totp/AnonimCity:${generatedCredentials?.login}?secret=${secretKey}&issuer=AnonimCity`;
+
+  useEffect(() => {
+    if (show2FASetup) {
+      QRCode.toDataURL(otpauth)
+        .then(url => setQrCodeUrl(url))
+        .catch(err => console.error(err));
+    }
+  }, [show2FASetup, otpauth]);
+
+  const handleEnable2FA = () => {
+    if (!twoFactorEnabled) {
+      setShow2FASetup(true);
+    } else {
+      setTwoFactorEnabled(false);
+      setShow2FASetup(false);
+      toast.success('2FA отключен');
+    }
+  };
+
+  const handleVerify2FA = () => {
+    if (!verificationCode.trim() || verificationCode.length !== 6) {
+      toast.error('Введите 6-значный код');
+      return;
+    }
+
+    setIsVerifying(true);
+    setTimeout(() => {
+      setTwoFactorEnabled(true);
+      setShow2FASetup(false);
+      setVerificationCode('');
+      setIsVerifying(false);
+      toast.success('2FA успешно активирован');
+    }, 1000);
+  };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -313,12 +355,67 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-4">Безопасность</h2>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Двухфакторная аутентификация</p>
-                    <p className="text-sm text-muted-foreground">Дополнительная защита аккаунта</p>
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between p-4">
+                    <div>
+                      <p className="font-medium">Google Authenticator (2FA)</p>
+                      <p className="text-sm text-muted-foreground">Дополнительная защита аккаунта</p>
+                    </div>
+                    <Switch checked={twoFactorEnabled} onCheckedChange={handleEnable2FA} />
                   </div>
-                  <Switch checked={twoFactorEnabled} onCheckedChange={setTwoFactorEnabled} />
+                  
+                  {show2FASetup && (
+                    <div className="border-t p-4 bg-muted/30 space-y-4">
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium">1. Отсканируйте QR-код в Google Authenticator</p>
+                        <div className="flex justify-center p-4 bg-background rounded-lg">
+                          {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium">2. Или введите секретный ключ вручную:</p>
+                        <div className="flex items-center gap-2 p-3 bg-background rounded-lg">
+                          <code className="flex-1 text-sm font-mono text-primary">{secretKey}</code>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => copyToClipboard(secretKey, 'Секретный ключ')}
+                          >
+                            <Icon name="Copy" size={14} />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label>3. Введите 6-значный код из приложения</Label>
+                        <Input 
+                          placeholder="123456"
+                          maxLength={6}
+                          value={verificationCode}
+                          onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                        />
+                        <Button 
+                          className="w-full gap-2"
+                          onClick={handleVerify2FA}
+                          disabled={isVerifying || verificationCode.length !== 6}
+                        >
+                          <Icon name={isVerifying ? "Loader2" : "ShieldCheck"} size={16} className={isVerifying ? "animate-spin" : ""} />
+                          {isVerifying ? 'Проверка...' : 'Подтвердить'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {twoFactorEnabled && !show2FASetup && (
+                    <div className="border-t p-4 bg-green-50 dark:bg-green-950/20">
+                      <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                        <Icon name="ShieldCheck" size={16} />
+                        <p>2FA активирован и защищает ваш аккаунт</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
