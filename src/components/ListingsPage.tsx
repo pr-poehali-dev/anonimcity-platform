@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 
 type Service = 'Секс Выезд' | 'Секс Апартаменты' | 'Ужин' | 'Вечеринка' | 'Виртуальный секс';
@@ -25,6 +24,7 @@ interface Listing {
   images?: string[];
   author: string;
   createdAt: string;
+  isMine?: boolean;
 }
 
 interface ListingsPageProps {
@@ -32,6 +32,8 @@ interface ListingsPageProps {
 }
 
 export default function ListingsPage({ listings }: ListingsPageProps) {
+  const myListings = listings.filter(l => l.isMine);
+
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-12">
       <div className="container mx-auto px-4">
@@ -63,12 +65,13 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
         </div>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full md:w-auto grid-cols-2 mb-6">
+          <TabsList className="grid w-full md:w-auto grid-cols-3">
             <TabsTrigger value="all">Все объявления</TabsTrigger>
-            <TabsTrigger value="premium">Премиум</TabsTrigger>
+            <TabsTrigger value="premium">Premium</TabsTrigger>
+            <TabsTrigger value="my">Мои объявления</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-4">
+          <TabsContent value="all" className="space-y-4 mt-6">
             {listings.map((listing) => (
               <Card key={listing.id} className="p-6 hover:border-primary/50 transition-all">
                 <div className="flex justify-between items-start gap-4">
@@ -136,7 +139,7 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
             ))}
           </TabsContent>
 
-          <TabsContent value="premium" className="space-y-4">
+          <TabsContent value="premium" className="space-y-4 mt-6">
             {listings.filter(l => l.isPremium).map((listing) => (
               <Card key={listing.id} className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/30 hover:border-primary/50 transition-all">
                 <div className="flex justify-between items-start gap-4">
@@ -186,84 +189,80 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
               </Card>
             ))}
           </TabsContent>
-        </Tabs>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="lg" className="fixed bottom-8 right-8 rounded-full w-16 h-16 shadow-2xl">
-              <Icon name="Plus" size={24} />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Создать объявление</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Tabs defaultValue="free" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="free">Бесплатное</TabsTrigger>
-                  <TabsTrigger value="premium">Платное (Premium)</TabsTrigger>
-                </TabsList>
+          <TabsContent value="my" className="mt-6">
+            {myListings.length > 0 ? (
+              <div className="space-y-4">
+                {myListings.map((listing) => (
+                  <Card key={listing.id} className="p-6 hover:border-primary/50 transition-all">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-xl font-semibold">{listing.title}</h3>
+                              {listing.isPremium && (
+                                <Badge className="bg-gradient-to-r from-primary to-accent">
+                                  <Icon name="Crown" size={12} className="mr-1" />
+                                  Premium
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground">{listing.description}</p>
+                          </div>
+                        </div>
 
-                <TabsContent value="free" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Заголовок</Label>
-                    <Input placeholder="Краткое описание" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Описание</Label>
-                    <Textarea placeholder="Подробное описание..." rows={4} />
-                  </div>
-                  <Button className="w-full">Опубликовать бесплатно</Button>
-                </TabsContent>
+                        {listing.isPremium && (
+                          <div className="flex flex-wrap gap-2">
+                            {listing.services?.map((service) => (
+                              <Badge key={service} variant="secondary">{service}</Badge>
+                            ))}
+                            {listing.type && <Badge variant="outline">{listing.type}</Badge>}
+                            {listing.price && (
+                              <Badge className="bg-primary/20 text-primary border-primary/30">
+                                {listing.price}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
 
-                <TabsContent value="premium" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Заголовок</Label>
-                    <Input placeholder="Краткое описание" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Описание</Label>
-                    <Textarea placeholder="Подробное описание..." rows={4} />
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Тип</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Выберите тип" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="individual">Индивидуалка</SelectItem>
-                          <SelectItem value="agency">Агенство</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <span>{listing.createdAt}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <Icon name="Edit" size={14} />
+                          Редактировать
+                        </Button>
+                        <Button variant="destructive" size="sm" className="gap-2">
+                          <Icon name="Trash2" size={14} />
+                          Удалить
+                        </Button>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Стоимость</Label>
-                      <Input placeholder="Цена" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Услуги</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['Секс Выезд', 'Секс Апартаменты', 'Ужин', 'Вечеринка', 'Виртуальный секс'].map((service) => (
-                        <Label key={service} className="flex items-center gap-2 cursor-pointer p-2 border rounded hover:bg-accent/10">
-                          <input type="checkbox" className="rounded" />
-                          <span className="text-sm">{service}</span>
-                        </Label>
-                      ))}
-                    </div>
-                  </div>
-                  <Button className="w-full gap-2">
-                    <Icon name="Crown" size={16} />
-                    Опубликовать Premium (0.001 BTC)
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-8 text-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Icon name="FileText" size={48} />
+                  <p>У вас пока нет объявлений</p>
+                  <Button asChild className="gap-2">
+                    <Link to="/create-listing">
+                      <Icon name="Plus" size={16} />
+                      Создать первое объявление
+                    </Link>
                   </Button>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </DialogContent>
-        </Dialog>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

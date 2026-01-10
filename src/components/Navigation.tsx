@@ -31,7 +31,7 @@ export default function Navigation({
     setPasswordInput('');
   };
   const menuItems = [
-    { icon: 'FileText', label: 'Объявления', path: '/my-listings' },
+    { icon: 'Grid', label: 'Объявления', path: '/listings' },
     { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
     { icon: 'Video', label: 'Вирт', path: '/virt' },
     { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
