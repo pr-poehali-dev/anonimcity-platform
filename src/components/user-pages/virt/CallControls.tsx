@@ -60,12 +60,29 @@ export default function CallControls({ type, modelName, onEndCall }: CallControl
         title: "Звонок начат",
         description: `Соединение с ${modelName}`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Media access error:', error);
+      
+      let errorMessage = "Не удалось получить доступ к камере или микрофону";
+      const isHttps = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Доступ заблокирован. Разрешите доступ в настройках браузера";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = type === 'video' 
+          ? "Камера или микрофон не найдены. Подключите устройства и попробуйте снова"
+          : "Микрофон не найден. Подключите микрофон и попробуйте снова";
+      } else if (!isHttps) {
+        errorMessage = "Для доступа к камере/микрофону требуется HTTPS. Опубликуйте сайт с SSL-сертификатом";
+      }
+      
       toast({
         title: "Ошибка доступа",
-        description: "Не удалось получить доступ к камере или микрофону",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      onEndCall();
     }
   };
 

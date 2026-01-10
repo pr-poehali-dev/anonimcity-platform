@@ -21,10 +21,17 @@ export default function AudioRecorder() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordings, setRecordings] = useState<AudioRecording[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [isHttps, setIsHttps] = useState(true);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
+
+  // Проверка HTTPS при загрузке
+  useState(() => {
+    const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+    setIsHttps(isSecure);
+  });
 
   const startRecording = async () => {
     try {
@@ -70,10 +77,24 @@ export default function AudioRecorder() {
         title: "Запись начата",
         description: "Говорите в микрофон",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Microphone access error:', error);
+      
+      let errorMessage = "Не удалось получить доступ к микрофону";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Доступ к микрофону заблокирован. Разрешите доступ в настройках браузера";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "Микрофон не найден. Подключите микрофон и попробуйте снова";
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = "Ваш браузер не поддерживает запись аудио";
+      } else if (!isHttps) {
+        errorMessage = "Для доступа к микрофону требуется HTTPS. Опубликуйте сайт с SSL-сертификатом";
+      }
+      
       toast({
-        title: "Ошибка доступа",
-        description: "Не удалось получить доступ к микрофону",
+        title: "Ошибка доступа к микрофону",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -161,6 +182,34 @@ export default function AudioRecorder() {
 
   return (
     <div className="space-y-6">
+      {/* Предупреждение о HTTP */}
+      {!isHttps && (
+        <Card className="border-orange-500/50 bg-orange-500/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Icon name="AlertTriangle" size={24} className="text-orange-500 flex-shrink-0 mt-1" />
+              <div className="space-y-2">
+                <h3 className="font-semibold text-orange-500">Требуется HTTPS для доступа к микрофону</h3>
+                <p className="text-sm text-muted-foreground">
+                  Браузеры блокируют доступ к микрофону на небезопасных сайтах (HTTP). 
+                  Для использования записи аудио опубликуйте сайт с SSL-сертификатом или откройте через localhost.
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Badge variant="outline" className="gap-1">
+                    <Icon name="Lock" size={12} />
+                    Текущий протокол: {window.location.protocol}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <Icon name="Globe" size={12} />
+                    Хост: {window.location.hostname}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Панель записи */}
       <Card>
         <CardHeader>
