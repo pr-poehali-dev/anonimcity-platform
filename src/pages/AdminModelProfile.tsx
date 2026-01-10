@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import type { Model } from '@/components/admin/tabs/AdminContentTabs';
@@ -20,14 +24,18 @@ interface Listing {
   inquiries: number;
 }
 
+const avatarOptions = ['👩', '👱‍♀️', '👧', '👩‍🦰', '👩‍🦱', '👩‍🦳', '🧕', '👸', '💃', '🙋‍♀️'];
+const cityOptions = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Нижний Новгород', 'Челябинск', 'Самара', 'Омск', 'Ростов-на-Дону'];
+
 export default function AdminModelProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState('listings');
+  const [isEditing, setIsEditing] = useState(false);
 
   // Mock данные модели (в реальном приложении получаем из props или context)
-  const model: Model = {
+  const [model, setModel] = useState<Model>({
     id: Number(id),
     name: 'Анна М.',
     login: 'anon_x7k2p9',
@@ -42,7 +50,9 @@ export default function AdminModelProfile() {
     phone: '+7 (900) 123-45-67',
     telegram: '@anna_model',
     whatsapp: '+79001234567',
-  };
+  });
+
+  const [editForm, setEditForm] = useState(model);
 
   // Mock объявления модели
   const [listings, setListings] = useState<Listing[]>([
@@ -107,6 +117,20 @@ export default function AdminModelProfile() {
     };
     const { variant, label } = variants[status] || variants.active;
     return <Badge variant={variant}>{label}</Badge>;
+  };
+
+  const handleSaveProfile = () => {
+    setModel(editForm);
+    setIsEditing(false);
+    toast({
+      title: "Профиль обновлен",
+      description: "Изменения успешно сохранены",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditForm(model);
+    setIsEditing(false);
   };
 
   return (
@@ -324,13 +348,245 @@ export default function AdminModelProfile() {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4 mt-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Настройки профиля</CardTitle>
+                {!isEditing && (
+                  <Button onClick={() => setIsEditing(true)} className="gap-2">
+                    <Icon name="Edit" size={16} />
+                    Редактировать
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Редактирование профиля модели находится в разработке
-                </p>
+                {isEditing ? (
+                  <div className="space-y-6">
+                    {/* Основная информация */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-muted-foreground">Основная информация</h3>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Имя модели</Label>
+                          <Input
+                            id="name"
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="login">Логин</Label>
+                          <Input
+                            id="login"
+                            value={editForm.login}
+                            onChange={(e) => setEditForm({ ...editForm, login: e.target.value })}
+                            disabled
+                            className="bg-muted"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="avatar">Аватар</Label>
+                          <Select value={editForm.avatar} onValueChange={(value) => setEditForm({ ...editForm, avatar: value })}>
+                            <SelectTrigger id="avatar">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {avatarOptions.map((emoji) => (
+                                <SelectItem key={emoji} value={emoji}>
+                                  <span className="text-2xl">{emoji}</span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="age">Возраст</Label>
+                          <Input
+                            id="age"
+                            type="number"
+                            min="18"
+                            max="99"
+                            value={editForm.age || ''}
+                            onChange={(e) => setEditForm({ ...editForm, age: e.target.value ? Number(e.target.value) : undefined })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="city">Город</Label>
+                        <Select value={editForm.city} onValueChange={(value) => setEditForm({ ...editForm, city: value })}>
+                          <SelectTrigger id="city">
+                            <SelectValue placeholder="Выберите город" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cityOptions.map((city) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Описание профиля</Label>
+                        <Textarea
+                          id="bio"
+                          value={editForm.bio}
+                          onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Контакты */}
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-sm font-semibold text-muted-foreground">Контактная информация</h3>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Телефон</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={editForm.phone}
+                          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="telegram">Telegram</Label>
+                          <Input
+                            id="telegram"
+                            value={editForm.telegram}
+                            onChange={(e) => setEditForm({ ...editForm, telegram: e.target.value })}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="whatsapp">WhatsApp</Label>
+                          <Input
+                            id="whatsapp"
+                            value={editForm.whatsapp}
+                            onChange={(e) => setEditForm({ ...editForm, whatsapp: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Статус */}
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-sm font-semibold text-muted-foreground">Статус аккаунта</h3>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="status">Статус</Label>
+                          <Select value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value })}>
+                            <SelectTrigger id="status">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Активен</SelectItem>
+                              <SelectItem value="verified">Верифицирован</SelectItem>
+                              <SelectItem value="inactive">Неактивен</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex items-end pb-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={editForm.verified}
+                              onChange={(e) => setEditForm({ ...editForm, verified: e.target.checked })}
+                              className="w-4 h-4 rounded border-gray-300"
+                            />
+                            <span className="text-sm">Верифицированный профиль</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Кнопки сохранения */}
+                    <div className="flex gap-3 pt-4">
+                      <Button onClick={handleSaveProfile} className="gap-2">
+                        <Icon name="Save" size={16} />
+                        Сохранить изменения
+                      </Button>
+                      <Button variant="outline" onClick={handleCancelEdit}>
+                        Отмена
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-2">Основная информация</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Имя</p>
+                            <p className="font-medium">{model.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Логин</p>
+                            <p className="font-medium">{model.login}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Возраст</p>
+                            <p className="font-medium">{model.age ? `${model.age} лет` : 'Не указан'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Город</p>
+                            <p className="font-medium">{model.city || 'Не указан'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-2">Контакты</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Телефон</p>
+                            <p className="font-medium">{model.phone || 'Не указан'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Telegram</p>
+                            <p className="font-medium">{model.telegram || 'Не указан'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">WhatsApp</p>
+                            <p className="font-medium">{model.whatsapp || 'Не указан'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {model.bio && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-2">Описание</h4>
+                        <p className="text-sm">{model.bio}</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-muted-foreground mb-2">Статус аккаунта</h4>
+                      <div className="flex gap-2">
+                        <Badge variant="outline">{model.status}</Badge>
+                        {model.verified && (
+                          <Badge variant="default" className="gap-1">
+                            <Icon name="CheckCircle" size={12} />
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
