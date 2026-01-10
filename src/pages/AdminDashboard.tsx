@@ -75,6 +75,8 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
 
   const [listingDialog, setListingDialog] = useState(false);
   const [editingListing, setEditingListing] = useState<Listing | null>(null);
+  const [viewDialog, setViewDialog] = useState(false);
+  const [viewingListing, setViewingListing] = useState<Listing | null>(null);
   const [selectedTab, setSelectedTab] = useState('moderation');
 
   const handleLogout = () => {
@@ -157,6 +159,11 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   const openEditListing = (listing: Listing) => {
     setEditingListing(listing);
     setListingDialog(true);
+  };
+
+  const openViewListing = (listing: Listing) => {
+    setViewingListing(listing);
+    setViewDialog(true);
   };
 
   const handleSaveListing = () => {
@@ -306,6 +313,15 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
                         <div className="flex gap-2 flex-wrap">
                           <Button 
                             size="sm" 
+                            variant="outline" 
+                            className="gap-2"
+                            onClick={() => openViewListing(listing)}
+                          >
+                            <Icon name="Eye" size={14} />
+                            Просмотр
+                          </Button>
+                          <Button 
+                            size="sm" 
                             variant="default" 
                             className="gap-2"
                             onClick={() => handleApprove(listing.id)}
@@ -357,6 +373,15 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
                         </p>
                       </div>
                       <div className="flex gap-2 flex-wrap">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="gap-2"
+                          onClick={() => openViewListing(listing)}
+                        >
+                          <Icon name="Eye" size={14} />
+                          Просмотр
+                        </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
@@ -599,6 +624,136 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
             </Button>
             <Button onClick={handleSaveListing}>
               Сохранить изменения
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={viewDialog} onOpenChange={setViewDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Просмотр объявления</DialogTitle>
+          </DialogHeader>
+          {viewingListing && (
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-full">
+                  <div className="flex items-center gap-2 mb-4 flex-wrap">
+                    <h2 className="text-xl font-bold">{viewingListing.title}</h2>
+                    {viewingListing.type === 'premium' && (
+                      <Badge variant="default" className="gap-1">
+                        <Icon name="Crown" size={14} />
+                        Премиум
+                      </Badge>
+                    )}
+                    <Badge 
+                      variant={
+                        viewingListing.status === 'active' ? 'default' : 
+                        viewingListing.status === 'pending' ? 'secondary' : 
+                        'destructive'
+                      }
+                    >
+                      {viewingListing.status === 'active' ? 'Активно' : 
+                       viewingListing.status === 'pending' ? 'На модерации' : 
+                       'Отклонено'}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Категория</p>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Tag" size={16} className="text-primary" />
+                          <p className="font-medium">{viewingListing.category}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Цена</p>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Wallet" size={16} className="text-primary" />
+                          <p className="font-medium text-xl">{viewingListing.price.toLocaleString()} ₽</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Автор</p>
+                        <div className="flex items-center gap-2">
+                          <Icon name="User" size={16} className="text-primary" />
+                          <p className="font-medium">{viewingListing.author}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Дата создания</p>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Calendar" size={16} className="text-primary" />
+                          <p className="font-medium">{viewingListing.created}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <p className="text-sm text-muted-foreground mb-2">Описание</p>
+                    <p className="text-base leading-relaxed">{viewingListing.description}</p>
+                  </div>
+
+                  <div className="border-t pt-6 mt-6">
+                    <p className="text-sm text-muted-foreground mb-3">Дополнительная информация</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Icon name="MapPin" size={16} className="text-muted-foreground" />
+                        <span>Москва, Россия</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Clock" size={16} className="text-muted-foreground" />
+                        <span>Доступно 24/7</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Shield" size={16} className="text-muted-foreground" />
+                        <span>Проверенный профиль</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Star" size={16} className="text-muted-foreground" />
+                        <span>Рейтинг: 4.8/5</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {viewingListing.status === 'pending' && (
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button 
+                    className="flex-1 gap-2"
+                    onClick={() => {
+                      handleApprove(viewingListing.id);
+                      setViewDialog(false);
+                    }}
+                  >
+                    <Icon name="Check" size={16} />
+                    Одобрить объявление
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    className="flex-1 gap-2"
+                    onClick={() => {
+                      handleReject(viewingListing.id);
+                      setViewDialog(false);
+                    }}
+                  >
+                    <Icon name="X" size={16} />
+                    Отклонить
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialog(false)}>
+              Закрыть
             </Button>
           </DialogFooter>
         </DialogContent>
