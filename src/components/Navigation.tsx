@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import AnonymousLetterDialog from './AnonymousLetterDialog';
 
 interface NavigationProps {
   isAuthenticated: boolean;
@@ -77,11 +78,7 @@ export default function Navigation({
             <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/messages">
-                    <Icon name="Mail" size={18} />
-                  </Link>
-                </Button>
+                <AnonymousLetterDialog />
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/settings">
                     <Icon name="Settings" size={18} />
