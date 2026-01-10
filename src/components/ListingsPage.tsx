@@ -173,7 +173,6 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                         <span>{listing.createdAt}</span>
                       </div>
                     </div>
-                    </div>
                   </div>
 
                   <Dialog className="flex-shrink-0">
