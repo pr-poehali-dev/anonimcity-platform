@@ -4,6 +4,7 @@ import AdminListingsTabs from './tabs/AdminListingsTabs';
 import AdminContentTabs from './tabs/AdminContentTabs';
 import AdminUsersTab from './tabs/AdminUsersTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
+import AdminMessagesTab from './tabs/AdminMessagesTab';
 import type { Category, Listing } from './AdminDialogs';
 import type { Model } from './tabs/AdminContentTabs';
 
@@ -48,7 +49,7 @@ export default function AdminTabs({
 }: AdminTabsProps) {
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-6">
+      <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="moderation" className="gap-2">
           <Icon name="Shield" size={16} />
           <span className="hidden sm:inline">Модерация</span>
@@ -68,6 +69,10 @@ export default function AdminTabs({
         <TabsTrigger value="users" className="gap-2">
           <Icon name="Users" size={16} />
           <span className="hidden sm:inline">Пользователи</span>
+        </TabsTrigger>
+        <TabsTrigger value="messages" className="gap-2">
+          <Icon name="Mail" size={16} />
+          <span className="hidden sm:inline">Сообщения</span>
         </TabsTrigger>
         <TabsTrigger value="settings" className="gap-2">
           <Icon name="Settings" size={16} />
@@ -96,6 +101,8 @@ export default function AdminTabs({
       />
 
       <AdminUsersTab recentUsers={recentUsers} />
+
+      <AdminMessagesTab models={models} />
 
       <AdminSettingsTab />
     </Tabs>
