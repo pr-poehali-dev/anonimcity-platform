@@ -18,6 +18,9 @@ interface ProfileWalletPagesProps {
 
 export default function ProfileWalletPages({ page, generatedCredentials, twoFactorEnabled, setTwoFactorEnabled }: ProfileWalletPagesProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [supportSubject, setSupportSubject] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -163,6 +166,49 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
     );
   }
 
+  const handleSendSupportTicket = async () => {
+    if (!supportSubject.trim() || !supportMessage.trim()) {
+      toast.error('Заполните все поля');
+      return;
+    }
+
+    if (!generatedCredentials) {
+      toast.error('Необходимо авторизоваться');
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const ticket = {
+        id: Date.now(),
+        userLogin: generatedCredentials.login,
+        subject: supportSubject,
+        message: supportMessage,
+        status: 'new',
+        createdAt: new Date().toISOString(),
+      };
+
+      const existingTickets = JSON.parse(localStorage.getItem('support_tickets') || '[]');
+      localStorage.setItem('support_tickets', JSON.stringify([ticket, ...existingTickets]));
+
+      toast.success('Обращение отправлено', {
+        description: 'Поддержка ответит в ближайшее время',
+      });
+
+      setSupportSubject('');
+      setSupportMessage('');
+    } catch (error) {
+      toast.error('Ошибка отправки', {
+        description: 'Попробуйте снова',
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   if (page === 'support') {
     return (
       <div className="min-h-screen pt-24 pb-24 md:pb-12">
@@ -174,15 +220,28 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Тема обращения</Label>
-                  <Input placeholder="Кратко опишите проблему" />
+                  <Input 
+                    placeholder="Кратко опишите проблему" 
+                    value={supportSubject}
+                    onChange={(e) => setSupportSubject(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Сообщение</Label>
-                  <Textarea placeholder="Подробное описание проблемы..." rows={5} />
+                  <Textarea 
+                    placeholder="Подробное описание проблемы..." 
+                    rows={5}
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                  />
                 </div>
-                <Button className="w-full gap-2">
-                  <Icon name="Send" size={16} />
-                  Отправить
+                <Button 
+                  className="w-full gap-2"
+                  onClick={handleSendSupportTicket}
+                  disabled={isSending}
+                >
+                  <Icon name={isSending ? "Loader2" : "Send"} size={16} className={isSending ? "animate-spin" : ""} />
+                  {isSending ? 'Отправка...' : 'Отправить'}
                 </Button>
               </div>
             </div>
