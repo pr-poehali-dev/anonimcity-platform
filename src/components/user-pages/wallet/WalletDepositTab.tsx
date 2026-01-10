@@ -29,7 +29,7 @@ export default function WalletDepositTab({
   return (
     <Card className="p-6">
       <div className="space-y-4">
-        <Button variant="outline" className="w-full gap-2 mb-4">
+        <Button variant="outline" className="w-full gap-2 mb-4" onClick={() => window.open('https://casher.is/', '_blank')}>
           <Icon name="ArrowLeftRight" size={16} />
           Анонимный надежный обменник
         </Button>
