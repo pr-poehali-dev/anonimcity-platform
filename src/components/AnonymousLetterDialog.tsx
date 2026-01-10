@@ -11,6 +11,7 @@ export default function AnonymousLetterDialog() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [recipient, setRecipient] = useState('');
+  const [recipientGender, setRecipientGender] = useState<'female' | 'male'>('female');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
@@ -32,6 +33,7 @@ export default function AnonymousLetterDialog() {
       const letter = {
         id: Date.now(),
         recipient,
+        recipientGender,
         message,
         sentAt: new Date().toISOString(),
       };
@@ -85,7 +87,27 @@ export default function AnonymousLetterDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label>Получатель (логин)</Label>
+            <Label>Получатель</Label>
+            <div className="flex gap-3 mb-3">
+              <Button
+                type="button"
+                variant={recipientGender === 'female' ? 'default' : 'outline'}
+                className="flex-1 gap-2"
+                onClick={() => setRecipientGender('female')}
+              >
+                <Icon name="User" size={16} />
+                Девушке
+              </Button>
+              <Button
+                type="button"
+                variant={recipientGender === 'male' ? 'default' : 'outline'}
+                className="flex-1 gap-2"
+                onClick={() => setRecipientGender('male')}
+              >
+                <Icon name="User" size={16} />
+                Мужчине
+              </Button>
+            </div>
             <Input
               placeholder="anon_xxxxxxxx"
               value={recipient}
