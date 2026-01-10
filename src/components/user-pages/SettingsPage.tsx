@@ -19,6 +19,7 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const secretKey = 'JBSWY3DPEHPK3PXP';
   const otpauth = `otpauth://totp/AnonimCity:${generatedCredentials?.login}?secret=${secretKey}&issuer=AnonimCity`;
@@ -89,10 +90,10 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div>
                   <p className="font-medium">Пароль</p>
-                  <p className="text-sm text-muted-foreground">••••••••</p>
+                  <p className="text-sm text-muted-foreground">{showPassword ? generatedCredentials?.password : '••••••••'}</p>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Icon name="Eye" size={16} />
+                <Button variant="outline" size="sm" onClick={() => setShowPassword(!showPassword)}>
+                  <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
                 </Button>
               </div>
             </div>
