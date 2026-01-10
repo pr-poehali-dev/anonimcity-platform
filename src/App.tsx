@@ -38,6 +38,7 @@ function AppContent() {
     const savedSession = localStorage.getItem('anonimcity_session');
     const credsSaved = localStorage.getItem('credentials_saved');
     const adminSession = localStorage.getItem('admin_session');
+    const twoFAStatus = localStorage.getItem('2fa_enabled');
     
     if (savedSession) {
       try {
@@ -52,6 +53,10 @@ function AppContent() {
     
     if (adminSession) {
       setIsAdminAuthenticated(true);
+    }
+    
+    if (twoFAStatus === 'true') {
+      setTwoFactorEnabled(true);
     }
   }, []);
 
@@ -153,7 +158,7 @@ function AppContent() {
           isAuthenticated ? <Listings /> : <Navigate to="/" replace />
         } />
         <Route path="/create-listing" element={
-          isAuthenticated ? <CreateListing /> : <Navigate to="/" replace />
+          isAuthenticated ? <CreateListing generatedCredentials={generatedCredentials} /> : <Navigate to="/" replace />
         } />
         <Route path="/my-listings" element={
           isAuthenticated ? <MyListings generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />

@@ -9,15 +9,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
+import { createListing } from '@/lib/api';
 
 type Service = 'Секс Выезд' | 'Секс Апартаменты' | 'Ужин' | 'Вечеринка' | 'Виртуальный секс';
 type ListingType = 'Индивидуалка' | 'Агенство';
 
 const SERVICES: Service[] = ['Секс Выезд', 'Секс Апартаменты', 'Ужин', 'Вечеринка', 'Виртуальный секс'];
 
-export default function CreateListing() {
+interface CreateListingProps {
+  generatedCredentials: { login: string; password: string; user_id?: number } | null;
+}
+
+export default function CreateListing({ generatedCredentials }: CreateListingProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -111,7 +117,7 @@ export default function CreateListing() {
     setRecordingTime(0);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
@@ -123,12 +129,50 @@ export default function CreateListing() {
       return;
     }
 
-    toast({
-      title: "Объявление создано",
-      description: "Ваше объявление опубликовано",
-    });
+    if (!generatedCredentials?.user_id) {
+      toast({
+        title: "Ошибка",
+        description: "Необходимо авторизоваться",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    navigate('/my-listings');
+    setIsSubmitting(true);
+
+    try {
+      const result = await createListing(generatedCredentials.user_id, {
+        title,
+        description,
+        category: type,
+        price: price ? parseFloat(price) : undefined,
+        currency: 'RUB',
+        location: 'Москва',
+        images: uploadedImages,
+      });
+
+      if (result.success) {
+        toast({
+          title: "Объявление создано",
+          description: "Ваше объявление опубликовано",
+        });
+        navigate('/my-listings');
+      } else {
+        toast({
+          title: "Ошибка",
+          description: result.error || "Не удалось создать объявление",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать объявление",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -306,11 +350,11 @@ export default function CreateListing() {
               )}
 
               <div className="flex gap-3 pt-4">
-                <Button type="submit" className="flex-1 gap-2">
-                  <Icon name="Send" size={16} />
-                  Опубликовать
+                <Button type="submit" className="flex-1 gap-2" disabled={isSubmitting}>
+                  <Icon name={isSubmitting ? "Loader2" : "Send"} size={16} className={isSubmitting ? "animate-spin" : ""} />
+                  {isSubmitting ? 'Публикация...' : 'Опубликовать'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+                <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={isSubmitting}>
                   Отмена
                 </Button>
               </div>

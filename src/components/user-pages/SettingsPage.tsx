@@ -37,6 +37,7 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
     } else {
       setTwoFactorEnabled(false);
       setShow2FASetup(false);
+      localStorage.setItem('2fa_enabled', 'false');
       toast.success('2FA отключен');
     }
   };
@@ -53,6 +54,7 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
       setShow2FASetup(false);
       setVerificationCode('');
       setIsVerifying(false);
+      localStorage.setItem('2fa_enabled', 'true');
       toast.success('2FA успешно активирован');
     }, 1000);
   };
