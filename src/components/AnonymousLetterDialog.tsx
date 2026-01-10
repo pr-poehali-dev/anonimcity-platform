@@ -78,9 +78,8 @@ export default function AnonymousLetterDialog() {
               <Icon name="Info" size={20} className="text-primary flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
                 <p className="font-medium">Полная анонимность</p>
-                <p className="text-muted-foreground">
-                  Получатель не узнает, кто отправил письмо. Ваши данные не будут раскрыты.
-                </p>
+                <p className="text-muted-foreground">Расскажи  о своей самой развратной фантазии. 
+Поделись самым сокровенным секретом.  Никаких ограничений и табу нет .</p>
               </div>
             </div>
           </div>
