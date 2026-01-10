@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,12 @@ export default function CreateListing() {
   const [type, setType] = useState<ListingType>('Индивидуалка');
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [isPremium, setIsPremium] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleServiceToggle = (service: Service) => {
     setSelectedServices(prev =>
@@ -32,6 +38,77 @@ export default function CreateListing() {
         ? prev.filter(s => s !== service)
         : [...prev, service]
     );
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImages(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= 30) {
+            stopRecording();
+            return 30;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось получить доступ к микрофону',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    }
+  };
+
+  const removeAudio = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -156,6 +233,77 @@ export default function CreateListing() {
                   </p>
                 </Label>
               </div>
+
+              {isPremium && (
+                <div className="space-y-4 p-4 border rounded-lg bg-primary/5">
+                  <div className="space-y-2">
+                    <Label>Фотографии</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {uploadedImages.map((img, index) => (
+                        <div key={index} className="relative group">
+                          <img src={img} alt={`Upload ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                          >
+                            <Icon name="X" size={14} />
+                          </Button>
+                        </div>
+                      ))}
+                      {uploadedImages.length < 5 && (
+                        <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors">
+                          <Icon name="Plus" size={20} className="text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground mt-1">Добавить</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Максимум 5 фотографий</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Голосовое приветствие (до 30 сек)</Label>
+                    {!audioBlob ? (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={isRecording ? 'destructive' : 'outline'}
+                          className="flex-1 gap-2"
+                          onClick={isRecording ? stopRecording : startRecording}
+                        >
+                          <Icon name={isRecording ? 'Square' : 'Mic'} size={16} />
+                          {isRecording ? `Остановить (${recordingTime}с)` : 'Записать аудио'}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 bg-background rounded-lg border">
+                        <Icon name="CheckCircle" size={20} className="text-green-500" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Аудио записано</p>
+                          <p className="text-xs text-muted-foreground">{recordingTime} секунд</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeAudio}
+                        >
+                          <Icon name="Trash2" size={16} />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <Button type="submit" className="flex-1 gap-2">
