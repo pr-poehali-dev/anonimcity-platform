@@ -65,6 +65,17 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   const adminModelIds = models.map(m => m.id);
   const newMessagesCount = messages.filter(m => adminModelIds.includes(m.modelId) && m.status === 'new').length;
 
+  const [responses] = useState([
+    { id: 1, listingId: 1, status: 'new' },
+    { id: 2, listingId: 3, status: 'read' },
+    { id: 3, listingId: 1, status: 'replied' },
+    { id: 4, listingId: 3, status: 'new' },
+    { id: 5, listingId: 1, status: 'replied' },
+  ]);
+
+  const adminListingIds = listings.filter(l => l.createdByAdmin).map(l => l.id);
+  const newResponsesCount = responses.filter(r => adminListingIds.includes(r.listingId) && r.status === 'new').length;
+
   const [categoryDialog, setCategoryDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newCategory, setNewCategory] = useState({ name: '', description: '', icon: 'Tag' });
@@ -264,9 +275,25 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
                   className="gap-2 relative"
                 >
                   <Icon name="Mail" size={16} />
-                  <span>Новые сообщения</span>
+                  <span className="hidden md:inline">Новые сообщения</span>
+                  <span className="md:hidden">Сообщения</span>
                   <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                     {newMessagesCount}
+                  </span>
+                </Button>
+              )}
+              {newResponsesCount > 0 && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={() => setSelectedTab('responses')} 
+                  className="gap-2 relative"
+                >
+                  <Icon name="MessageSquare" size={16} />
+                  <span className="hidden md:inline">Новые ответы</span>
+                  <span className="md:hidden">Ответы</span>
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {newResponsesCount}
                   </span>
                 </Button>
               )}
