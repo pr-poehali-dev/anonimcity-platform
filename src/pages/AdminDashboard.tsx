@@ -34,9 +34,9 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   ]);
 
   const [listings, setListings] = useState<Listing[]>([
-    { id: 1, title: 'Премиум эскорт услуги', description: 'VIP сопровождение', author: 'anon_x7k2p9', created: '2024-01-10 14:00', type: 'premium', category: 'Эскорт услуги', price: 15000, status: 'pending' },
+    { id: 1, title: 'Премиум эскорт услуги', description: 'VIP сопровождение', author: 'anon_x7k2p9', created: '2024-01-10 14:00', type: 'premium', category: 'Эскорт услуги', price: 15000, status: 'pending', createdByAdmin: true },
     { id: 2, title: 'Виртуальное общение', description: 'Приятное общение онлайн', author: 'anon_m3n8q1', created: '2024-01-10 13:30', type: 'regular', category: 'Виртуальное общение', price: 1500, status: 'active' },
-    { id: 3, title: 'Выезд по городу', description: 'Сопровождение по Москве', author: 'anon_q2l8n3', created: '2024-01-10 12:45', type: 'premium', category: 'Эскорт услуги', price: 20000, status: 'pending' },
+    { id: 3, title: 'Выезд по городу', description: 'Сопровождение по Москве', author: 'anon_q2l8n3', created: '2024-01-10 12:45', type: 'premium', category: 'Эскорт услуги', price: 20000, status: 'pending', createdByAdmin: true },
     { id: 4, title: 'Расслабляющий массаж', description: 'Профессиональный массаж', author: 'anon_k3m7n2', created: '2024-01-10 11:20', type: 'regular', category: 'Массаж', price: 5000, status: 'active' },
   ]);
 
@@ -48,10 +48,10 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   ]);
 
   const [models, setModels] = useState<Model[]>([
-    { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true, age: 24, city: 'Москва', bio: 'Профессиональная модель' },
-    { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true, age: 26, city: 'Санкт-Петербург' },
+    { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true, age: 24, city: 'Москва', bio: 'Профессиональная модель', createdByAdmin: true },
+    { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true, age: 26, city: 'Санкт-Петербург', createdByAdmin: true },
     { id: 3, name: 'Елена Р.', login: 'anon_p9k2m7', status: 'active', listingsCount: 5, totalRevenue: 67000, avatar: '👧', verified: false, age: 22, city: 'Новосибирск' },
-    { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, age: 28, city: 'Екатеринбург' },
+    { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, age: 28, city: 'Екатеринбург', createdByAdmin: true },
   ]);
 
   const [messages] = useState([
@@ -159,6 +159,7 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
       id: Date.now(),
       listingsCount: 0,
       totalRevenue: 0,
+      createdByAdmin: true,
     };
     setModels([...models, newModel]);
   };
@@ -222,6 +223,7 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
       category: listingData.category,
       price: Number(listingData.price),
       status: listingData.status,
+      createdByAdmin: true,
     };
 
     setListings([newListing, ...listings]);

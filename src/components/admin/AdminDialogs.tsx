@@ -24,6 +24,7 @@ export interface Listing {
   category: string;
   price: number;
   status: 'pending' | 'active' | 'rejected';
+  createdByAdmin?: boolean;
 }
 
 interface AdminDialogsProps {

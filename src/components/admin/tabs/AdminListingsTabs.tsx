@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
@@ -26,6 +27,12 @@ export default function AdminListingsTabs({
   handleDeleteListing,
   onCreateListing,
 }: AdminListingsTabsProps) {
+  const [showMyListings, setShowMyListings] = useState(false);
+
+  const displayedListings = showMyListings
+    ? activeListings.filter(l => l.createdByAdmin)
+    : activeListings;
+
   return (
     <>
       <TabsContent value="moderation" className="space-y-4">
@@ -99,19 +106,52 @@ export default function AdminListingsTabs({
       <TabsContent value="listings" className="space-y-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Все объявления ({activeListings.length} активных)</CardTitle>
+            <div className="flex items-center gap-4">
+              <CardTitle>
+                {showMyListings ? `Мои объявления (${displayedListings.length})` : `Все объявления (${activeListings.length})`}
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button 
+                  variant={!showMyListings ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setShowMyListings(false)}
+                >
+                  Все
+                </Button>
+                <Button 
+                  variant={showMyListings ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setShowMyListings(true)}
+                  className="gap-2"
+                >
+                  <Icon name="FileEdit" size={14} />
+                  Мои
+                </Button>
+              </div>
+            </div>
             <Button onClick={onCreateListing} className="gap-2">
               <Icon name="Plus" size={16} />
               Создать объявление
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {activeListings.map((listing) => (
+            {displayedListings.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Icon name="FileEdit" size={48} className="mx-auto mb-4 opacity-50" />
+                <p>У вас пока нет созданных объявлений</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayedListings.map((listing) => (
                 <div key={listing.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold">{listing.title}</h3>
+                      {listing.createdByAdmin && (
+                        <Badge variant="secondary" className="gap-1" title="Создано вами">
+                          <Icon name="FileEdit" size={10} />
+                        </Badge>
+                      )}
                       {listing.type === 'premium' && (
                         <Badge variant="default" className="gap-1">
                           <Icon name="Crown" size={12} />
@@ -155,8 +195,9 @@ export default function AdminListingsTabs({
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>

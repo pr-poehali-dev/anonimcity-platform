@@ -24,6 +24,7 @@ export interface Model {
   phone?: string;
   telegram?: string;
   whatsapp?: string;
+  createdByAdmin?: boolean;
 }
 
 interface AdminContentTabsProps {
@@ -49,6 +50,11 @@ export default function AdminContentTabs({
   const { toast } = useToast();
   const [createModelOpen, setCreateModelOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<Model | null>(null);
+  const [showMyModels, setShowMyModels] = useState(false);
+
+  const displayedModels = showMyModels 
+    ? models.filter(m => m.createdByAdmin) 
+    : models;
 
   const handleCreateModel = (modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
     if (editingModel) {
@@ -141,15 +147,43 @@ export default function AdminContentTabs({
       <TabsContent value="models" className="space-y-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Модели на платформе ({models.length})</CardTitle>
+            <div className="flex items-center gap-4">
+              <CardTitle>
+                {showMyModels ? `Мои модели (${displayedModels.length})` : `Все модели (${models.length})`}
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button 
+                  variant={!showMyModels ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setShowMyModels(false)}
+                >
+                  Все
+                </Button>
+                <Button 
+                  variant={showMyModels ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setShowMyModels(true)}
+                  className="gap-2"
+                >
+                  <Icon name="UserCog" size={14} />
+                  Мои
+                </Button>
+              </div>
+            </div>
             <Button onClick={handleOpenCreateDialog} className="gap-2">
               <Icon name="Plus" size={16} />
               Создать модель
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {models.map((model) => (
+            {displayedModels.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Icon name="UserCog" size={48} className="mx-auto mb-4 opacity-50" />
+                <p>У вас пока нет созданных моделей</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {displayedModels.map((model) => (
                 <div key={model.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl">
@@ -158,6 +192,11 @@ export default function AdminContentTabs({
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold">{model.name}</h3>
+                        {model.createdByAdmin && (
+                          <Badge variant="secondary" className="gap-1" title="Создана вами">
+                            <Icon name="UserCog" size={10} />
+                          </Badge>
+                        )}
                         {model.verified && (
                           <Badge variant="default" className="gap-1">
                             <Icon name="CheckCircle" size={10} />
@@ -196,8 +235,8 @@ export default function AdminContentTabs({
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
+                ))}\n              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
