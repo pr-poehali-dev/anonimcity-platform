@@ -54,7 +54,9 @@ function AppContent() {
       const credentials = { login, password };
       setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
+      setCredentialsSaved(false);
       localStorage.setItem('anonimcity_session', JSON.stringify(credentials));
+      localStorage.removeItem('credentials_saved');
       toast({
         title: "Аккаунт создан",
         description: `Логин: ${login}`,
@@ -77,7 +79,9 @@ function AppContent() {
       const credentials = { login, password };
       setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
+      setCredentialsSaved(true);
       localStorage.setItem('anonimcity_session', JSON.stringify(credentials));
+      localStorage.setItem('credentials_saved', 'true');
       toast({
         title: "Успешный вход",
         description: `Добро пожаловать, ${login}`,
@@ -94,7 +98,9 @@ function AppContent() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setGeneratedCredentials(null);
+    setCredentialsSaved(false);
     localStorage.removeItem('anonimcity_session');
+    localStorage.removeItem('credentials_saved');
     toast({
       title: "Выход выполнен",
       description: "Вы вышли из аккаунта",
