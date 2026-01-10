@@ -29,6 +29,11 @@ export default function WalletDepositTab({
   return (
     <Card className="p-6">
       <div className="space-y-4">
+        <Button variant="outline" className="w-full gap-2 mb-4">
+          <Icon name="ArrowLeftRight" size={16} />
+          Анонимный надежный обменник
+        </Button>
+        
         <h3 className="font-semibold flex items-center gap-2">
           <Icon name="Download" size={20} />
           Пополнить кошелек криптовалютой
