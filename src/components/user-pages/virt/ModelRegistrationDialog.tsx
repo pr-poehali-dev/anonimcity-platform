@@ -5,9 +5,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ModelRegistrationDialog() {
-  const [ratePerMinute, setRatePerMinute] = useState('');
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [age, setAge] = useState('');
+  const [city, setCity] = useState('');
+  const [videoPrice, setVideoPrice] = useState('');
+  const [audioPrice, setAudioPrice] = useState('');
+  const [chatPrice, setChatPrice] = useState('');
   const [description, setDescription] = useState('');
   const [gender, setGender] = useState<'female' | 'male'>('female');
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
@@ -82,8 +91,81 @@ export default function ModelRegistrationDialog() {
     setRecordingTime(0);
   };
 
+  const handleSubmit = async () => {
+    if (!nickname || !age || !city) {
+      toast({
+        title: "Заполните обязательные поля",
+        description: "Укажите псевдоним, возраст и город",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!videoPrice && !audioPrice && !chatPrice) {
+      toast({
+        title: "Укажите цены",
+        description: "Заполните хотя бы одну цену для услуг",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Имитация отправки заявки (в реальности здесь будет API запрос)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Сохраняем заявку в localStorage для демонстрации
+      const application = {
+        id: Date.now(),
+        nickname,
+        age: parseInt(age),
+        city,
+        gender,
+        videoPrice: videoPrice ? parseFloat(videoPrice) : null,
+        audioPrice: audioPrice ? parseFloat(audioPrice) : null,
+        chatPrice: chatPrice ? parseFloat(chatPrice) : null,
+        description,
+        photo: uploadedPhoto,
+        hasAudio: !!audioBlob,
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+      };
+
+      const existingApplications = JSON.parse(localStorage.getItem('model_applications') || '[]');
+      localStorage.setItem('model_applications', JSON.stringify([...existingApplications, application]));
+
+      toast({
+        title: "Заявка отправлена!",
+        description: "Администратор рассмотрит вашу заявку в течение 24 часов",
+      });
+
+      // Очищаем форму
+      setNickname('');
+      setAge('');
+      setCity('');
+      setVideoPrice('');
+      setAudioPrice('');
+      setChatPrice('');
+      setDescription('');
+      setUploadedPhoto(null);
+      setAudioBlob(null);
+      setRecordingTime(0);
+      setOpen(false);
+    } catch (error) {
+      toast({
+        title: "Ошибка отправки",
+        description: "Не удалось отправить заявку. Попробуйте снова",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Icon name="Plus" size={16} />
@@ -96,17 +178,30 @@ export default function ModelRegistrationDialog() {
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Псевдоним</Label>
-            <Input placeholder="Например: Анна" />
+            <Label>Псевдоним *</Label>
+            <Input 
+              placeholder="Например: Анна" 
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Возраст</Label>
-              <Input type="number" placeholder="25" />
+              <Label>Возраст *</Label>
+              <Input 
+                type="number" 
+                placeholder="25" 
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Город</Label>
-              <Input placeholder="Москва" />
+              <Label>Город *</Label>
+              <Input 
+                placeholder="Москва" 
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
             </div>
           </div>
 
@@ -199,15 +294,30 @@ export default function ModelRegistrationDialog() {
             <Label>Предоставляемые услуги и цены (₽/мин)</Label>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Input type="number" placeholder="Видеозвонки" />
+                <Input 
+                  type="number" 
+                  placeholder="Видеозвонки" 
+                  value={videoPrice}
+                  onChange={(e) => setVideoPrice(e.target.value)}
+                />
                 <Icon name="Video" size={18} className="text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <Input type="number" placeholder="Аудиозвонки" />
+                <Input 
+                  type="number" 
+                  placeholder="Аудиозвонки" 
+                  value={audioPrice}
+                  onChange={(e) => setAudioPrice(e.target.value)}
+                />
                 <Icon name="Phone" size={18} className="text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <Input type="number" placeholder="Переписка" />
+                <Input 
+                  type="number" 
+                  placeholder="Переписка" 
+                  value={chatPrice}
+                  onChange={(e) => setChatPrice(e.target.value)}
+                />
                 <Icon name="MessageCircle" size={18} className="text-muted-foreground" />
               </div>
             </div>
@@ -235,9 +345,13 @@ export default function ModelRegistrationDialog() {
               </div>
             </div>
           </div>
-          <Button className="w-full gap-2">
-            <Icon name="Send" size={16} />
-            Отправить заявку
+          <Button 
+            className="w-full gap-2" 
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            <Icon name={isSubmitting ? "Loader2" : "Send"} size={16} className={isSubmitting ? "animate-spin" : ""} />
+            {isSubmitting ? "Отправка..." : "Отправить заявку"}
           </Button>
         </div>
       </DialogContent>
