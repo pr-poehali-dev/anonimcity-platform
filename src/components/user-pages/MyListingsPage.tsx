@@ -157,6 +157,20 @@ export default function MyListingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
+                      <Label>Категория</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите категорию" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="escort">Эскорт услуги</SelectItem>
+                          <SelectItem value="virtual">Виртуальное общение</SelectItem>
+                          <SelectItem value="massage">Массаж</SelectItem>
+                          <SelectItem value="photo">Фото/Видео услуги</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
                       <Label>Заголовок</Label>
                       <Input placeholder="Краткое описание услуги" />
                     </div>
@@ -194,6 +208,20 @@ export default function MyListingsPage() {
                         <Label>Город</Label>
                         <Input placeholder="Москва" />
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Категория</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите категорию" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="escort">Эскорт услуги</SelectItem>
+                          <SelectItem value="virtual">Виртуальное общение</SelectItem>
+                          <SelectItem value="massage">Массаж</SelectItem>
+                          <SelectItem value="photo">Фото/Видео услуги</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label>Заголовок</Label>
