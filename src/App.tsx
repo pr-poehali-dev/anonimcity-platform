@@ -17,6 +17,8 @@ import Profile from "./pages/Profile";
 import Wallet from "./pages/Wallet";
 import Support from "./pages/Support";
 import Settings from "./pages/Settings";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { registerUser, loginUser } from "./lib/auth";
 
@@ -27,11 +29,14 @@ function AppContent() {
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [credentialsSaved, setCredentialsSaved] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const savedSession = localStorage.getItem('anonimcity_session');
     const credsSaved = localStorage.getItem('credentials_saved');
+    const adminSession = localStorage.getItem('admin_session');
+    
     if (savedSession) {
       try {
         const session = JSON.parse(savedSession);
@@ -41,6 +46,10 @@ function AppContent() {
       } catch (error) {
         localStorage.removeItem('anonimcity_session');
       }
+    }
+    
+    if (adminSession) {
+      setIsAdminAuthenticated(true);
     }
   }, []);
 
@@ -107,6 +116,16 @@ function AppContent() {
     });
   };
 
+  const handleAdminLogin = (login: string, password: string) => {
+    setIsAdminAuthenticated(true);
+    localStorage.setItem('admin_session', JSON.stringify({ login }));
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem('admin_session');
+  };
+
   return (
     <BrowserRouter>
       <Navigation 
@@ -157,6 +176,12 @@ function AppContent() {
         } />
         <Route path="/settings" element={
           isAuthenticated ? <Settings generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
+        } />
+        <Route path="/admin/login" element={
+          isAdminAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin onAdminLogin={handleAdminLogin} />
+        } />
+        <Route path="/admin/dashboard" element={
+          isAdminAuthenticated ? <AdminDashboard onAdminLogout={handleAdminLogout} /> : <Navigate to="/admin/login" replace />
         } />
         <Route path="*" element={<NotFound />} />
       </Routes>
