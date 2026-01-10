@@ -87,9 +87,8 @@ export default function Navigation({
                     <Icon name="HelpCircle" size={18} />
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" onClick={onLogout} className="gap-2">
+                <Button variant="outline" size="sm" onClick={onLogout}>
                   <Icon name="LogOut" size={16} />
-                  Выход
                 </Button>
               </>
             ) : (
