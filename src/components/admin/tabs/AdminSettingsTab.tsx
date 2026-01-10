@@ -18,11 +18,16 @@ export default function AdminSettingsTab() {
   const [secretKey, setSecretKey] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [setupStep, setSetupStep] = useState<'setup' | 'verify'>('setup');
+  const [soundNotificationsEnabled, setSoundNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     const saved2FA = localStorage.getItem('admin_2fa_enabled');
     if (saved2FA === 'true') {
       setTwoFactorEnabled(true);
+    }
+    const savedSoundNotifications = localStorage.getItem('admin_sound_notifications');
+    if (savedSoundNotifications === 'true') {
+      setSoundNotificationsEnabled(true);
     }
   }, []);
 
@@ -102,10 +107,16 @@ export default function AdminSettingsTab() {
     });
   };
 
-  const handleNotificationSettings = () => {
+  const handleToggleSoundNotifications = () => {
+    const newState = !soundNotificationsEnabled;
+    setSoundNotificationsEnabled(newState);
+    localStorage.setItem('admin_sound_notifications', String(newState));
+    
     toast({
-      title: "Уведомления",
-      description: "Настройка уведомлений находится в разработке",
+      title: newState ? "Звук включен" : "Звук выключен",
+      description: newState 
+        ? "Вы будете получать звуковые оповещения о новых сообщениях и ответах"
+        : "Звуковые оповещения отключены",
     });
   };
 
@@ -165,11 +176,26 @@ export default function AdminSettingsTab() {
                 <Button variant="outline" onClick={handlePricingSettings}>Настроить</Button>
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-semibold">Уведомления</h3>
-                  <p className="text-sm text-muted-foreground">Настройка системных уведомлений</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Icon name={soundNotificationsEnabled ? "Volume2" : "VolumeX"} size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Звуковые уведомления</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {soundNotificationsEnabled ? 'Звук включен для новых сообщений и ответов' : 'Звуковые оповещения отключены'}
+                    </p>
+                  </div>
                 </div>
-                <Button variant="outline" onClick={handleNotificationSettings}>Настроить</Button>
+                {soundNotificationsEnabled ? (
+                  <Button variant="destructive" onClick={handleToggleSoundNotifications}>
+                    Отключить
+                  </Button>
+                ) : (
+                  <Button variant="default" onClick={handleToggleSoundNotifications}>
+                    Включить
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
