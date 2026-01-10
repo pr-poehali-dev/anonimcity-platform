@@ -61,7 +61,7 @@ export default function AdminTabs({
   };
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-5">
+      <TabsList className="grid w-full grid-cols-6">
         <TabsTrigger value="moderation" className="gap-2">
           <Icon name="Shield" size={16} />
           <span className="hidden sm:inline">Модерация</span>
@@ -73,6 +73,10 @@ export default function AdminTabs({
         <TabsTrigger value="categories" className="gap-2">
           <Icon name="Tag" size={16} />
           <span className="hidden sm:inline">Категории</span>
+        </TabsTrigger>
+        <TabsTrigger value="models" className="gap-2">
+          <Icon name="User" size={16} />
+          <span className="hidden sm:inline">Модели</span>
         </TabsTrigger>
         <TabsTrigger value="users" className="gap-2">
           <Icon name="Users" size={16} />
@@ -254,6 +258,72 @@ export default function AdminTabs({
                     >
                       <Icon name="Trash2" size={14} />
                     </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="models" className="space-y-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Модели на платформе</CardTitle>
+            <Button className="gap-2">
+              <Icon name="UserPlus" size={16} />
+              Добавить модель
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', rating: 4.9, listings: 12, revenue: 145000, photo: '👩' },
+                { id: 2, name: 'Виктория К.', login: 'anon_m3n8q1', status: 'verified', rating: 4.8, listings: 8, revenue: 98000, photo: '👱‍♀️' },
+                { id: 3, name: 'Екатерина Л.', login: 'anon_q2l8n3', status: 'pending', rating: 4.7, listings: 5, revenue: 67000, photo: '👩‍🦰' },
+                { id: 4, name: 'Мария С.', login: 'anon_k3m7n2', status: 'verified', rating: 5.0, listings: 15, revenue: 210000, photo: '👩‍🦱' },
+              ].map((model) => (
+                <div key={model.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl flex-shrink-0">
+                      {model.photo}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-semibold">{model.name}</h3>
+                        {model.status === 'verified' && (
+                          <Badge variant="default" className="gap-1">
+                            <Icon name="CheckCircle" size={12} />
+                            Верифицирована
+                          </Badge>
+                        )}
+                        {model.status === 'pending' && (
+                          <Badge variant="secondary">На проверке</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {model.login} • Рейтинг: {model.rating}/5 ⭐
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 flex-wrap">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Объявлений</p>
+                      <p className="font-semibold">{model.listings}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Доход</p>
+                      <p className="font-semibold">{model.revenue.toLocaleString()} ₽</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="gap-2">
+                        <Icon name="Eye" size={14} />
+                        Профиль
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Icon name="MoreVertical" size={14} />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
