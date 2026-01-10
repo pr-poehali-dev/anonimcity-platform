@@ -15,6 +15,8 @@ interface Listing {
   audioGreeting?: string;
   author: string;
   createdAt: string;
+  city?: string;
+  age?: number;
 }
 
 const mockListings: Listing[] = [
@@ -29,7 +31,9 @@ const mockListings: Listing[] = [
     images: ['https://placehold.co/400x300/6366f1/ffffff?text=Photo+1', 'https://placehold.co/400x300/8b5cf6/ffffff?text=Photo+2'],
     audioGreeting: 'audio_greeting_1.mp3',
     author: 'user_8347',
-    createdAt: '2 часа назад'
+    createdAt: '2 часа назад',
+    city: 'Москва',
+    age: 24
   },
   {
     id: 2,
@@ -37,7 +41,9 @@ const mockListings: Listing[] = [
     description: 'Приятное общение, анонимность',
     isPremium: false,
     author: 'user_2891',
-    createdAt: '5 часов назад'
+    createdAt: '5 часов назад',
+    city: 'Санкт-Петербург',
+    age: 28
   },
   {
     id: 3,
@@ -50,7 +56,9 @@ const mockListings: Listing[] = [
     images: ['https://placehold.co/400x300/ec4899/ffffff?text=Photo+1', 'https://placehold.co/400x300/f43f5e/ffffff?text=Photo+2', 'https://placehold.co/400x300/ef4444/ffffff?text=Photo+3'],
     audioGreeting: 'audio_greeting_2.mp3',
     author: 'agency_elite',
-    createdAt: '1 день назад'
+    createdAt: '1 день назад',
+    city: 'Москва',
+    age: 22
   },
   {
     id: 4,
@@ -58,7 +66,9 @@ const mockListings: Listing[] = [
     description: 'Ищу интересное общение',
     isPremium: false,
     author: 'user_5421',
-    createdAt: '3 часа назад'
+    createdAt: '3 часа назад',
+    city: 'Екатеринбург',
+    age: 26
   }
 ];
 

@@ -27,6 +27,8 @@ interface Listing {
   author: string;
   createdAt: string;
   isMine?: boolean;
+  city?: string;
+  age?: number;
 }
 
 interface ListingsPageProps {
@@ -35,8 +37,37 @@ interface ListingsPageProps {
 
 export default function ListingsPage({ listings }: ListingsPageProps) {
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedService, setSelectedService] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [ageRange, setAgeRange] = useState<string>('all');
   
-  const sortedListings = [...listings].sort((a, b) => {
+  const cities = ['all', ...Array.from(new Set(listings.map(l => l.city).filter(Boolean)))] as string[];
+  
+  const filteredListings = listings.filter(listing => {
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         listing.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesService = selectedService === 'all' || listing.services?.some(s => {
+      if (selectedService === 'outcall') return s === 'Секс Выезд';
+      if (selectedService === 'apartment') return s === 'Секс Апартаменты';
+      if (selectedService === 'dinner') return s === 'Ужин';
+      if (selectedService === 'party') return s === 'Вечеринка';
+      if (selectedService === 'virtual') return s === 'Виртуальный секс';
+      return false;
+    });
+    const matchesCity = selectedCity === 'all' || listing.city === selectedCity;
+    const matchesAge = ageRange === 'all' || (() => {
+      if (!listing.age) return false;
+      if (ageRange === '18-25') return listing.age >= 18 && listing.age <= 25;
+      if (ageRange === '26-35') return listing.age >= 26 && listing.age <= 35;
+      if (ageRange === '36+') return listing.age >= 36;
+      return true;
+    })();
+    
+    return matchesSearch && matchesService && matchesCity && matchesAge;
+  });
+  
+  const sortedListings = [...filteredListings].sort((a, b) => {
     if (a.isPremium && !b.isPremium) return -1;
     if (!a.isPremium && b.isPremium) return 1;
     return 0;
@@ -65,10 +96,15 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
           </Button>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6 mb-8">
-          <Input placeholder="Поиск объявлений..." className="flex-1" />
-          <Select>
-            <SelectTrigger className="w-full md:w-48">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Input 
+            placeholder="Поиск объявлений..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="md:col-span-2"
+          />
+          <Select value={selectedService} onValueChange={setSelectedService}>
+            <SelectTrigger>
               <SelectValue placeholder="Все услуги" />
             </SelectTrigger>
             <SelectContent>
@@ -78,6 +114,28 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
               <SelectItem value="dinner">Ужин</SelectItem>
               <SelectItem value="party">Вечеринка</SelectItem>
               <SelectItem value="virtual">Виртуальный секс</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <SelectTrigger>
+              <SelectValue placeholder="Все города" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все города</SelectItem>
+              {cities.filter(c => c !== 'all').map(city => (
+                <SelectItem key={city} value={city}>{city}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={ageRange} onValueChange={setAgeRange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Любой возраст" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Любой возраст</SelectItem>
+              <SelectItem value="18-25">18-25 лет</SelectItem>
+              <SelectItem value="26-35">26-35 лет</SelectItem>
+              <SelectItem value="36+">36+ лет</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -140,6 +198,17 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                         {listing.price && (
                           <Badge className="bg-primary/20 text-primary border-primary/30">
                             {listing.price}
+                          </Badge>
+                        )}
+                        {listing.city && (
+                          <Badge variant="outline" className="gap-1">
+                            <Icon name="MapPin" size={12} />
+                            {listing.city}
+                          </Badge>
+                        )}
+                        {listing.age && (
+                          <Badge variant="outline">
+                            {listing.age} лет
                           </Badge>
                         )}
                       </div>
