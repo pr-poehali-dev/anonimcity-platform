@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,7 @@ export default function AdminTabs({
   handleDeleteCategory,
 }: AdminTabsProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleModerationSettings = () => {
     toast({
@@ -316,7 +318,12 @@ export default function AdminTabs({
                       <p className="font-semibold">{model.revenue.toLocaleString()} ₽</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="gap-2"
+                        onClick={() => navigate(`/admin/model/${model.id}`)}
+                      >
                         <Icon name="Eye" size={14} />
                         Профиль
                       </Button>

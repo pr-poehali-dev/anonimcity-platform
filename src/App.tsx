@@ -19,6 +19,7 @@ import Support from "./pages/Support";
 import Settings from "./pages/Settings";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import ModelProfile from "./pages/ModelProfile";
 import NotFound from "./pages/NotFound";
 import { registerUser, loginUser } from "./lib/auth";
 
@@ -182,6 +183,9 @@ function AppContent() {
         } />
         <Route path="/admin/dashboard" element={
           isAdminAuthenticated ? <AdminDashboard onAdminLogout={handleAdminLogout} /> : <Navigate to="/admin/login" replace />
+        } />
+        <Route path="/admin/model/:id" element={
+          isAdminAuthenticated ? <ModelProfile /> : <Navigate to="/admin/login" replace />
         } />
         <Route path="*" element={<NotFound />} />
       </Routes>
