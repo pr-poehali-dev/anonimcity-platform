@@ -1,10 +1,4 @@
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Icon from '@/components/ui/icon';
 import { useState, useEffect } from 'react';
 import { 
   getExchangeRates, 
@@ -18,7 +12,11 @@ import {
   cancelStakingEarly
 } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
+import WalletBalanceCards from './wallet/WalletBalanceCards';
+import WalletDepositTab from './wallet/WalletDepositTab';
+import WalletExchangeTab from './wallet/WalletExchangeTab';
+import WalletStakingTab from './wallet/WalletStakingTab';
+import WalletHistoryTab from './wallet/WalletHistoryTab';
 
 interface WalletPageProps {
   generatedCredentials: { login: string; password: string; user_id?: number } | null;
@@ -213,63 +211,17 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = { deposit: 'Пополнение', withdrawal: 'Вывод', payment: 'Оплата', refund: 'Возврат', exchange: 'Обмен' };
-    return labels[type] || type;
-  };
-
-  const getStatusBadge = (status: string) => {
-    if (status === 'completed') return <Badge className="bg-green-500">Выполнено</Badge>;
-    if (status === 'active') return <Badge className="bg-blue-500">Активен</Badge>;
-    if (status === 'cancelled') return <Badge variant="outline" className="bg-orange-100 text-orange-700">Отменен</Badge>;
-    if (status === 'pending') return <Badge variant="secondary">В обработке</Badge>;
-    if (status === 'failed') return <Badge variant="destructive">Ошибка</Badge>;
-    return <Badge>{status}</Badge>;
-  };
-
-  const calculateDailyReward = (amount: number, annualRate: number) => (amount * annualRate) / 36500;
-
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-12">
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-3xl font-bold mb-8">Кошелек</h1>
         
         <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/20">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Рубли</h2>
-                  <Icon name="Wallet" size={24} className="text-blue-500" />
-                </div>
-                {isLoading ? <Icon name="Loader2" size={32} className="animate-spin text-blue-500" /> : (
-                  <>
-                    <p className="text-4xl font-bold">{balanceRub.toFixed(2)} ₽</p>
-                    <p className="text-sm text-muted-foreground">Рублевый баланс</p>
-                  </>
-                )}
-              </div>
-            </Card>
-
-            <Card className="p-6 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">CITY</h2>
-                  <Icon name="Coins" size={24} className="text-amber-500" />
-                </div>
-                {isLoading ? <Icon name="Loader2" size={32} className="animate-spin text-amber-500" /> : (
-                  <>
-                    <p className="text-4xl font-bold">{balanceCity.toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">1 CITY = 1 ₽</p>
-                  </>
-                )}
-              </div>
-            </Card>
-          </div>
+          <WalletBalanceCards 
+            balanceRub={balanceRub}
+            balanceCity={balanceCity}
+            isLoading={isLoading}
+          />
 
           <Tabs defaultValue="deposit" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
@@ -280,228 +232,45 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
             </TabsList>
 
             <TabsContent value="deposit" className="space-y-4">
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Icon name="Download" size={20} />
-                    Пополнить кошелек криптовалютой
-                  </h3>
-                  
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Icon name="Bitcoin" size={16} className="text-orange-500" />
-                        <p className="font-medium text-sm">BTC</p>
-                      </div>
-                      <p className="text-sm font-bold">{rates.BTC.toLocaleString('ru-RU')} ₽</p>
-                    </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Icon name="Hexagon" size={16} className="text-purple-500" />
-                        <p className="font-medium text-sm">ETH</p>
-                      </div>
-                      <p className="text-sm font-bold">{rates.ETH.toLocaleString('ru-RU')} ₽</p>
-                    </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Icon name="CircleDollarSign" size={16} className="text-blue-400" />
-                        <p className="font-medium text-sm">LTC</p>
-                      </div>
-                      <p className="text-sm font-bold">{rates.LTC.toLocaleString('ru-RU')} ₽</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Криптовалюта</Label>
-                    <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-                        <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                        <SelectItem value="LTC">Litecoin (LTC)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Сумма</Label>
-                    <Input type="number" step="0.00000001" placeholder="0.001" value={amountCrypto} onChange={(e) => setAmountCrypto(e.target.value)} />
-                  </div>
-
-                  {amountCrypto && amountRub > 0 && (
-                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Будет зачислено</p>
-                      <p className="text-2xl font-bold text-primary">{amountRub.toFixed(2)} ₽</p>
-                    </div>
-                  )}
-
-                  <Button className="w-full gap-2" onClick={handleDeposit} disabled={isProcessing || !amountCrypto || parseFloat(amountCrypto) <= 0}>
-                    <Icon name={isProcessing ? 'Loader2' : 'Download'} size={16} className={isProcessing ? 'animate-spin' : ''} />
-                    {isProcessing ? 'Обработка...' : 'Пополнить'}
-                  </Button>
-                </div>
-              </Card>
+              <WalletDepositTab
+                rates={rates}
+                amountCrypto={amountCrypto}
+                setAmountCrypto={setAmountCrypto}
+                selectedCurrency={selectedCurrency}
+                setSelectedCurrency={setSelectedCurrency}
+                amountRub={amountRub}
+                isProcessing={isProcessing}
+                handleDeposit={handleDeposit}
+              />
             </TabsContent>
 
             <TabsContent value="exchange" className="space-y-4">
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Icon name="ArrowLeftRight" size={20} />
-                    Обмен валюты (1 CITY = 1 ₽)
-                  </h3>
-
-                  <div className="space-y-2">
-                    <Label>Обменять</Label>
-                    <Select value={exchangeFrom} onValueChange={setExchangeFrom}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="RUB">Рубли (₽) → CITY</SelectItem>
-                        <SelectItem value="CITY">CITY → Рубли (₽)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Сумма</Label>
-                    <Input type="number" step="0.01" placeholder="100" value={exchangeAmount} onChange={(e) => setExchangeAmount(e.target.value)} />
-                    <p className="text-xs text-muted-foreground">Доступно: {exchangeFrom === 'RUB' ? `${balanceRub.toFixed(2)} ₽` : `${balanceCity.toFixed(2)} CITY`}</p>
-                  </div>
-
-                  <Button className="w-full gap-2" onClick={handleExchange} disabled={isProcessing || !exchangeAmount || parseFloat(exchangeAmount) <= 0}>
-                    <Icon name={isProcessing ? 'Loader2' : 'ArrowLeftRight'} size={16} className={isProcessing ? 'animate-spin' : ''} />
-                    {isProcessing ? 'Обработка...' : 'Обменять'}
-                  </Button>
-                </div>
-              </Card>
+              <WalletExchangeTab
+                exchangeFrom={exchangeFrom}
+                setExchangeFrom={setExchangeFrom}
+                exchangeAmount={exchangeAmount}
+                setExchangeAmount={setExchangeAmount}
+                isProcessing={isProcessing}
+                handleExchange={handleExchange}
+              />
             </TabsContent>
 
             <TabsContent value="staking" className="space-y-4">
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Icon name="TrendingUp" size={20} />
-                    Создать стейкинг
-                  </h3>
-
-                  <div className="space-y-2">
-                    <Label>Период</Label>
-                    <Select value={String(stakingPeriod)} onValueChange={(v) => setStakingPeriod(Number(v))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STAKING_PERIODS.map(p => <SelectItem key={p.months} value={String(p.months)}>{p.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Сумма CITY</Label>
-                    <Input type="number" step="0.01" placeholder="1000" value={stakingAmount} onChange={(e) => setStakingAmount(e.target.value)} />
-                    <p className="text-xs text-muted-foreground">Доступно: {balanceCity.toFixed(2)} CITY</p>
-                  </div>
-
-                  {stakingAmount && parseFloat(stakingAmount) > 0 && (
-                    <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-                      <p className="text-sm font-medium text-green-900 dark:text-green-100">Ежедневный доход</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {calculateDailyReward(parseFloat(stakingAmount), STAKING_PERIODS.find(p => p.months === stakingPeriod)?.rate || 0).toFixed(4)} CITY
-                      </p>
-                    </div>
-                  )}
-
-                  <Button className="w-full gap-2" onClick={handleCreateStaking} disabled={isProcessing || !stakingAmount || parseFloat(stakingAmount) <= 0}>
-                    <Icon name={isProcessing ? 'Loader2' : 'Lock'} size={16} className={isProcessing ? 'animate-spin' : ''} />
-                    {isProcessing ? 'Обработка...' : 'Заблокировать'}
-                  </Button>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Мои стейкинги</h3>
-                {stakings.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-4">Нет активных стейкингов</p>
-                ) : (
-                  <div className="space-y-3">
-                    {stakings.map((staking) => (
-                      <div key={staking.id} className="p-4 border rounded-lg">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <p className="font-bold text-lg">{staking.amount_city.toFixed(2)} CITY</p>
-                            <p className="text-sm text-muted-foreground">{staking.period_months} мес. • {staking.annual_rate}% годовых</p>
-                          </div>
-                          {getStatusBadge(staking.status)}
-                        </div>
-                        <div className="space-y-1 text-sm">
-                          <p className="text-muted-foreground">
-                            Начислено: <span className="font-bold text-green-600">{staking.total_earned.toFixed(4)} CITY</span>
-                          </p>
-                          <p className="text-muted-foreground">Завершение: {formatDate(staking.end_date)}</p>
-                        </div>
-                        {staking.status === 'active' && (
-                          <div className="flex gap-2 mt-3">
-                            {staking.total_earned > 0 && (
-                              <Button size="sm" variant="outline" className="flex-1" onClick={() => handleClaimRewards(staking.id)} disabled={isProcessing}>
-                                <Icon name="Gift" size={14} />
-                                Забрать награды
-                              </Button>
-                            )}
-                            <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleCancelStaking(staking.id)} disabled={isProcessing}>
-                              <Icon name="XCircle" size={14} />
-                              Завершить досрочно
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
+              <WalletStakingTab
+                stakingAmount={stakingAmount}
+                setStakingAmount={setStakingAmount}
+                stakingPeriod={stakingPeriod}
+                setStakingPeriod={setStakingPeriod}
+                stakings={stakings}
+                isProcessing={isProcessing}
+                handleCreateStaking={handleCreateStaking}
+                handleClaimRewards={handleClaimRewards}
+                handleCancelStaking={handleCancelStaking}
+              />
             </TabsContent>
 
-            <TabsContent value="history">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Icon name="History" size={20} />
-                  История транзакций
-                </h3>
-                
-                {isLoading ? (
-                  <div className="text-center py-8">
-                    <Icon name="Loader2" size={48} className="mx-auto animate-spin text-primary mb-2" />
-                    <p className="text-muted-foreground">Загрузка...</p>
-                  </div>
-                ) : transactions.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Icon name="History" size={48} className="mx-auto mb-2 opacity-50" />
-                    <p>Нет транзакций</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {transactions.map((tx) => (
-                      <div key={tx.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium">{getTypeLabel(tx.type)}</p>
-                              {getStatusBadge(tx.status)}
-                            </div>
-                            {tx.description && <p className="text-sm text-muted-foreground">{tx.description}</p>}
-                            <p className="text-xs text-muted-foreground">{formatDate(tx.created_at)}</p>
-                          </div>
-                          <div className="text-right">
-                            {tx.amount_rub && (
-                              <p className="text-lg font-bold">{tx.type === 'deposit' || tx.type === 'refund' ? '+' : ''}{tx.amount_rub.toFixed(2)} ₽</p>
-                            )}
-                            {tx.amount_city && (
-                              <p className="text-sm text-amber-600 font-semibold">{tx.type === 'exchange' && tx.description?.includes('CITY →') ? '' : '+'}{tx.amount_city.toFixed(2)} CITY</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
+            <TabsContent value="history" className="space-y-4">
+              <WalletHistoryTab transactions={transactions} />
             </TabsContent>
           </Tabs>
         </div>
