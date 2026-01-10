@@ -8,7 +8,6 @@ import AdminMessagesTab from './tabs/AdminMessagesTab';
 import AdminResponsesTab from './tabs/AdminResponsesTab';
 import AdminFilesTab from './tabs/AdminFilesTab';
 import AdminModelApplicationsTab from './tabs/AdminModelApplicationsTab';
-import AdminSupportTab from './tabs/AdminSupportTab';
 import type { Category, Listing } from './AdminDialogs';
 import type { Model } from './tabs/AdminContentTabs';
 
@@ -57,7 +56,7 @@ export default function AdminTabs({
 }: AdminTabsProps) {
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-11">
+      <TabsList className="grid w-full grid-cols-10">
         <TabsTrigger value="moderation" className="gap-2">
           <Icon name="Shield" size={16} />
           <span className="hidden sm:inline">Модерация</span>
@@ -93,10 +92,6 @@ export default function AdminTabs({
         <TabsTrigger value="files" className="gap-2">
           <Icon name="FolderOpen" size={16} />
           <span className="hidden sm:inline">Файлы</span>
-        </TabsTrigger>
-        <TabsTrigger value="support" className="gap-2">
-          <Icon name="Headphones" size={16} />
-          <span className="hidden sm:inline">Support</span>
         </TabsTrigger>
         <TabsTrigger value="settings" className="gap-2">
           <Icon name="Settings" size={16} />
@@ -134,8 +129,6 @@ export default function AdminTabs({
       <AdminFilesTab />
 
       <AdminModelApplicationsTab />
-
-      <AdminSupportTab />
 
       <AdminSettingsTab />
     </Tabs>

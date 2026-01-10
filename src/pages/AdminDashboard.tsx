@@ -67,15 +67,6 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     { id: 5, modelId: 1, status: 'replied' },
   ]);
 
-  const [supportTickets, setSupportTickets] = useState<any[]>([]);
-
-  useEffect(() => {
-    const tickets = JSON.parse(localStorage.getItem('support_tickets') || '[]');
-    setSupportTickets(tickets);
-  }, [selectedTab]);
-
-  const newSupportTicketsCount = supportTickets.filter(t => t.status === 'new').length;
-
   const adminModelIds = models.map(m => m.id);
   const newMessagesCount = messages.filter(m => adminModelIds.includes(m.modelId) && m.status === 'new').length;
 
@@ -309,20 +300,6 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {newSupportTicketsCount > 0 && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={() => setSelectedTab('support')} 
-                  className="gap-2 relative"
-                >
-                  <Icon name="Headphones" size={16} />
-                  <span className="hidden md:inline">Support</span>
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {newSupportTicketsCount}
-                  </span>
-                </Button>
-              )}
               {newMessagesCount > 0 && (
                 <Button 
                   variant="default" 
