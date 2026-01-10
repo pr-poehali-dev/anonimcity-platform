@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Get exchange rates",
+      "method": "GET",
+      "path": "/?action=rates",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "rates": "object",
+        "updated_at": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get wallet balance",
+      "method": "GET",
+      "path": "/?action=balance",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "balance_rub": "number",
+        "created_at": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

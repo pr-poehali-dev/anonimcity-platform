@@ -4,6 +4,7 @@ const API_BASE = {
   listings: 'https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89',
   support: 'https://functions.poehali.dev/5ee71053-8c99-45ac-ae98-99ccdb3b681d',
   admin: 'https://functions.poehali.dev/804dda5f-70e7-45e2-9dfb-e051e0f70c47',
+  wallet: 'https://functions.poehali.dev/5755cd8a-ea9e-49d5-a18f-8956edb4b2a7',
 };
 
 export async function registerUser(login: string, password: string) {
@@ -499,6 +500,93 @@ export async function sendAnonymousLetter(recipientLogin: string, message: strin
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sender_login: senderLogin, recipient_login: recipientLogin, message }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+// Wallet API functions
+export async function getExchangeRates() {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=rates`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch exchange rates');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get exchange rates error:', error);
+    return { rates: { BTC: 0, ETH: 0, USDT: 0 }, fallback: true };
+  }
+}
+
+export async function getWalletBalance(userId: number) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=balance`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch wallet balance');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get wallet balance error:', error);
+    return { balance_rub: 0 };
+  }
+}
+
+export async function getWalletTransactions(userId: number) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=transactions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch transactions');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get transactions error:', error);
+    return [];
+  }
+}
+
+export async function depositToWallet(userId: number, amountCrypto: number, cryptoCurrency: string) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=deposit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        amount_crypto: amountCrypto,
+        crypto_currency: cryptoCurrency,
+      }),
     });
     
     const data = await response.json();

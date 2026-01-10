@@ -16,7 +16,7 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
   }
 
   if (page === 'wallet') {
-    return <WalletPage />;
+    return <WalletPage generatedCredentials={generatedCredentials} />;
   }
 
   if (page === 'support') {
