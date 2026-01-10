@@ -1,0 +1,239 @@
+const API_BASE = {
+  auth: 'https://functions.poehali.dev/82265bd0-62b8-467c-b764-e7667e7dde1a',
+  messages: 'https://functions.poehali.dev/0ec69c03-40fd-4089-854e-7e6a575f4c19',
+  listings: 'https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89',
+  support: 'https://functions.poehali.dev/5ee71053-8c99-45ac-ae98-99ccdb3b681d',
+};
+
+export async function registerUser(login: string, password: string) {
+  try {
+    const response = await fetch(`${API_BASE.auth}?action=register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, password }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Registration failed' };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function loginUser(login: string, password: string) {
+  try {
+    const response = await fetch(`${API_BASE.auth}?action=login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, password }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Login failed' };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function getMessages(userId: number) {
+  try {
+    const response = await fetch(API_BASE.messages, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch messages');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get messages error:', error);
+    return [];
+  }
+}
+
+export async function sendMessage(userId: number, receiverId: number, subject: string, text: string) {
+  try {
+    const response = await fetch(API_BASE.messages, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({ receiver_id: receiverId, subject, text }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function markMessageAsRead(userId: number, messageId: number) {
+  try {
+    const response = await fetch(API_BASE.messages, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({ message_id: messageId }),
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Mark message as read error:', error);
+    return false;
+  }
+}
+
+export async function getListings(params?: { user_id?: number; category?: string; id?: number }) {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.user_id) queryParams.append('user_id', String(params.user_id));
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.id) queryParams.append('id', String(params.id));
+    
+    const url = queryParams.toString() 
+      ? `${API_BASE.listings}?${queryParams}`
+      : API_BASE.listings;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch listings');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get listings error:', error);
+    return [];
+  }
+}
+
+export async function createListing(userId: number, listing: {
+  title: string;
+  description: string;
+  category: string;
+  price?: number;
+  currency?: string;
+  location?: string;
+  images?: string[];
+}) {
+  try {
+    const response = await fetch(API_BASE.listings, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify(listing),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function updateListing(userId: number, listingId: number, updates: Partial<{
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  status: string;
+}>) {
+  try {
+    const response = await fetch(API_BASE.listings, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.dumps({ id: listingId, ...updates }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function getSupportTickets(userId: number) {
+  try {
+    const response = await fetch(API_BASE.support, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch support tickets');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get support tickets error:', error);
+    return [];
+  }
+}
+
+export async function createSupportTicket(userId: number, subject: string, message: string) {
+  try {
+    const response = await fetch(API_BASE.support, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({ subject, message }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}

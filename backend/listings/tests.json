@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Get all listings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create listing",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "body": {
+        "title": "Test Item",
+        "description": "Test Description",
+        "category": "electronics",
+        "price": 1000,
+        "currency": "RUB"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

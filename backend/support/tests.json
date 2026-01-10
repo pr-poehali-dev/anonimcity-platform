@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Get support tickets",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create support ticket",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "body": {
+        "subject": "Need help",
+        "message": "I have a problem"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

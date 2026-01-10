@@ -22,13 +22,13 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminModelProfile from "./pages/AdminModelProfile";
 import ModelProfile from "./pages/ModelProfile";
 import NotFound from "./pages/NotFound";
-import { registerUser, loginUser } from "./lib/auth";
+import { registerUser, loginUser } from "./lib/api";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null);
+  const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string; user_id?: number } | null>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [credentialsSaved, setCredentialsSaved] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -61,8 +61,8 @@ function AppContent() {
     
     const result = await registerUser(login, password);
     
-    if (result.success) {
-      const credentials = { login, password };
+    if (result.success && result.data) {
+      const credentials = { login, password, user_id: result.data.user_id };
       setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
       setCredentialsSaved(false);
@@ -86,8 +86,8 @@ function AppContent() {
     
     const result = await loginUser(login, password);
     
-    if (result.success) {
-      const credentials = { login, password };
+    if (result.success && result.data) {
+      const credentials = { login, password, user_id: result.data.user_id };
       setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
       setCredentialsSaved(true);
