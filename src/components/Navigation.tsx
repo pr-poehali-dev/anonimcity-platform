@@ -148,14 +148,13 @@ export default function Navigation({
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-colors ${
+                className={`flex items-center justify-center py-3 px-1 rounded-lg transition-colors ${
                   location.pathname === item.path
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
-                <Icon name={item.icon as any} size={20} />
-                <span className="text-[10px] leading-none">{item.label}</span>
+                <Icon name={item.icon as any} size={24} />
               </Link>
             ))}
           </div>
