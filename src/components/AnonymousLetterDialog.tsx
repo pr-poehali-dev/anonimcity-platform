@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,6 +14,19 @@ export default function AnonymousLetterDialog() {
   const [recipientGender, setRecipientGender] = useState<'female' | 'male'>('female');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [models, setModels] = useState<any[]>([]);
+
+  useEffect(() => {
+    const applications = JSON.parse(localStorage.getItem('model_applications') || '[]');
+    const approvedModels = applications.filter((app: any) => app.status === 'approved');
+    setModels(approvedModels);
+  }, [open]);
+
+  const filteredModels = models.filter(model => model.gender === recipientGender);
+
+  useEffect(() => {
+    setRecipient('');
+  }, [recipientGender]);
 
   const handleSend = async () => {
     if (!recipient || !message) {
@@ -108,11 +121,28 @@ export default function AnonymousLetterDialog() {
                 Мужчине
               </Button>
             </div>
-            <Input
-              placeholder="anon_xxxxxxxx"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-            />
+            {filteredModels.length > 0 ? (
+              <Select value={recipient} onValueChange={setRecipient}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите модель" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredModels.map((model) => (
+                    <SelectItem key={model.id} value={model.nickname}>
+                      <div className="flex items-center gap-2">
+                        <Icon name="User" size={14} />
+                        {model.nickname} ({model.age} лет, {model.city})
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="p-4 border border-dashed rounded-lg text-center text-sm text-muted-foreground">
+                <Icon name="UserX" size={32} className="mx-auto mb-2 opacity-50" />
+                Нет одобренных моделей {recipientGender === 'female' ? 'женского' : 'мужского'} пола
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
