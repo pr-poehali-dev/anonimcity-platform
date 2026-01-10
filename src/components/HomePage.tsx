@@ -7,9 +7,11 @@ interface HomePageProps {
   isAuthenticated: boolean;
   generatedCredentials: { login: string; password: string } | null;
   onLogin: () => void;
+  credentialsSaved: boolean;
+  onCredentialsSaved: () => void;
 }
 
-export default function HomePage({ isAuthenticated, generatedCredentials, onLogin }: HomePageProps) {
+export default function HomePage({ isAuthenticated, generatedCredentials, onLogin, credentialsSaved, onCredentialsSaved }: HomePageProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} скопирован`);
@@ -47,7 +49,7 @@ export default function HomePage({ isAuthenticated, generatedCredentials, onLogi
                 </Button>
               </div>
             </Card>
-          ) : generatedCredentials && (
+          ) : generatedCredentials && !credentialsSaved && (
             <Card className="p-8 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 animate-scale-in">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-primary">
@@ -88,6 +90,10 @@ export default function HomePage({ isAuthenticated, generatedCredentials, onLogi
                   <Icon name="AlertTriangle" size={16} className="mt-0.5" />
                   <p>Сохраните эти данные! Восстановление невозможно из-за полной анонимности.</p>
                 </div>
+                <Button onClick={onCredentialsSaved} className="w-full gap-2" size="lg">
+                  <Icon name="Check" size={20} />
+                  СОХРАНИЛ
+                </Button>
               </div>
             </Card>
           )}

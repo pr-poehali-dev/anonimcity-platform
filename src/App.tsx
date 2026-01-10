@@ -25,15 +25,18 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [credentialsSaved, setCredentialsSaved] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const savedSession = localStorage.getItem('anonimcity_session');
+    const credsSaved = localStorage.getItem('credentials_saved');
     if (savedSession) {
       try {
         const session = JSON.parse(savedSession);
         setGeneratedCredentials(session);
         setIsAuthenticated(true);
+        setCredentialsSaved(credsSaved === 'true');
       } catch (error) {
         localStorage.removeItem('anonimcity_session');
       }
@@ -111,6 +114,11 @@ function AppContent() {
             isAuthenticated={isAuthenticated}
             generatedCredentials={generatedCredentials}
             onLogin={generateCredentials}
+            credentialsSaved={credentialsSaved}
+            onCredentialsSaved={() => {
+              setCredentialsSaved(true);
+              localStorage.setItem('credentials_saved', 'true');
+            }}
           />
         } />
         <Route path="/listings" element={
