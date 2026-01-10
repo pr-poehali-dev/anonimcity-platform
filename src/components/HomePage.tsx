@@ -29,7 +29,7 @@ export default function HomePage({ isAuthenticated, generatedCredentials, onLogi
             </p>
           </div>
 
-          {!isAuthenticated ? (
+          {!isAuthenticated && (
             <Card className="p-8 bg-card/50 backdrop-blur border-border/50 animate-scale-in">
               <div className="space-y-6">
                 <div className="flex items-center justify-center gap-3 text-primary">
@@ -49,7 +49,9 @@ export default function HomePage({ isAuthenticated, generatedCredentials, onLogi
                 </Button>
               </div>
             </Card>
-          ) : generatedCredentials && !credentialsSaved && (
+          )}
+          
+          {isAuthenticated && generatedCredentials && !credentialsSaved && (
             <Card className="p-8 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 animate-scale-in">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-primary">
