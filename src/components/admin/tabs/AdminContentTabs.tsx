@@ -18,6 +18,7 @@ export interface Model {
   totalRevenue: number;
   avatar: string;
   verified: boolean;
+  gender?: 'female' | 'male';
   age?: number;
   city?: string;
   bio?: string;

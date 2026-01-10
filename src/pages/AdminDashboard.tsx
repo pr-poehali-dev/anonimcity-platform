@@ -48,11 +48,16 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   ]);
 
   const [models, setModels] = useState<Model[]>([
-    { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true, age: 24, city: 'Москва', bio: 'Профессиональная модель', createdByAdmin: true },
-    { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true, age: 26, city: 'Санкт-Петербург', createdByAdmin: true },
-    { id: 3, name: 'Елена Р.', login: 'anon_p9k2m7', status: 'active', listingsCount: 5, totalRevenue: 67000, avatar: '👧', verified: false, age: 22, city: 'Новосибирск' },
-    { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, age: 28, city: 'Екатеринбург', createdByAdmin: true },
+    { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true, gender: 'female', age: 24, city: 'Москва', bio: 'Профессиональная модель', createdByAdmin: true },
+    { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true, gender: 'female', age: 26, city: 'Санкт-Петербург', createdByAdmin: true },
+    { id: 3, name: 'Елена Р.', login: 'anon_p9k2m7', status: 'active', listingsCount: 5, totalRevenue: 67000, avatar: '👧', verified: false, gender: 'female', age: 22, city: 'Новосибирск' },
+    { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, gender: 'female', age: 28, city: 'Екатеринбург', createdByAdmin: true },
   ]);
+
+  useEffect(() => {
+    const adminModels = models.filter(m => m.createdByAdmin);
+    localStorage.setItem('admin_models', JSON.stringify(adminModels));
+  }, []);
 
   const [messages] = useState([
     { id: 1, modelId: 1, status: 'new' },
@@ -194,19 +199,25 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
       totalRevenue: 0,
       createdByAdmin: true,
     };
-    setModels([...models, newModel]);
+    const updatedModels = [...models, newModel];
+    setModels(updatedModels);
+    localStorage.setItem('admin_models', JSON.stringify(updatedModels.filter(m => m.createdByAdmin)));
   };
 
   const handleUpdateModel = (id: number, modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
-    setModels(models.map(m => 
+    const updatedModels = models.map(m => 
       m.id === id 
         ? { ...m, ...modelData }
         : m
-    ));
+    );
+    setModels(updatedModels);
+    localStorage.setItem('admin_models', JSON.stringify(updatedModels.filter(m => m.createdByAdmin)));
   };
 
   const handleDeleteModel = (id: number) => {
-    setModels(models.filter(m => m.id !== id));
+    const updatedModels = models.filter(m => m.id !== id);
+    setModels(updatedModels);
+    localStorage.setItem('admin_models', JSON.stringify(updatedModels.filter(m => m.createdByAdmin)));
   };
 
   const openEditListing = (listing: Listing) => {

@@ -17,9 +17,8 @@ export default function AnonymousLetterDialog() {
   const [models, setModels] = useState<any[]>([]);
 
   useEffect(() => {
-    const applications = JSON.parse(localStorage.getItem('model_applications') || '[]');
-    const approvedModels = applications.filter((app: any) => app.status === 'approved');
-    setModels(approvedModels);
+    const adminModels = JSON.parse(localStorage.getItem('admin_models') || '[]');
+    setModels(adminModels);
   }, [open]);
 
   const filteredModels = models.filter(model => model.gender === recipientGender);

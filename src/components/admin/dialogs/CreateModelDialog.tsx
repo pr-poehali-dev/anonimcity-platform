@@ -18,6 +18,7 @@ interface ModelFormData {
   name: string;
   login: string;
   avatar: string;
+  gender: 'female' | 'male';
   age?: number;
   city?: string;
   bio?: string;
@@ -36,6 +37,7 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit, editin
     name: '',
     login: '',
     avatar: '👩',
+    gender: 'female',
     age: undefined,
     city: '',
     bio: '',
@@ -52,6 +54,7 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit, editin
         name: editingModel.name,
         login: editingModel.login,
         avatar: editingModel.avatar,
+        gender: (editingModel as any).gender || 'female',
         age: editingModel.age,
         city: editingModel.city,
         bio: editingModel.bio,
@@ -66,6 +69,7 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit, editin
         name: '',
         login: '',
         avatar: '👩',
+        gender: 'female',
         age: undefined,
         city: '',
         bio: '',
@@ -172,6 +176,30 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit, editin
                     <Icon name="Shuffle" size={16} />
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Пол</Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant={formData.gender === 'female' ? 'default' : 'outline'}
+                  className="flex-1 gap-2"
+                  onClick={() => setFormData({ ...formData, gender: 'female' })}
+                >
+                  <Icon name="User" size={16} />
+                  Женский
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.gender === 'male' ? 'default' : 'outline'}
+                  className="flex-1 gap-2"
+                  onClick={() => setFormData({ ...formData, gender: 'male' })}
+                >
+                  <Icon name="User" size={16} />
+                  Мужской
+                </Button>
               </div>
             </div>
 
