@@ -28,7 +28,10 @@ function AppContent() {
   const [generatedCredentials, setGeneratedCredentials] = useState<{ login: string; password: string } | null>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [credentialsSaved, setCredentialsSaved] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+
+  const ADMIN_LOGINS = ['admin', 'admin_main', 'superadmin'];
 
   useEffect(() => {
     const savedSession = localStorage.getItem('anonimcity_session');
@@ -39,6 +42,7 @@ function AppContent() {
         setGeneratedCredentials(session);
         setIsAuthenticated(true);
         setCredentialsSaved(credsSaved === 'true');
+        setIsAdmin(ADMIN_LOGINS.includes(session.login));
       } catch (error) {
         localStorage.removeItem('anonimcity_session');
       }
@@ -56,6 +60,7 @@ function AppContent() {
       setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
       setCredentialsSaved(false);
+      setIsAdmin(ADMIN_LOGINS.includes(login));
       localStorage.setItem('anonimcity_session', JSON.stringify(credentials));
       localStorage.removeItem('credentials_saved');
       toast({
@@ -81,6 +86,7 @@ function AppContent() {
       setGeneratedCredentials(credentials);
       setIsAuthenticated(true);
       setCredentialsSaved(true);
+      setIsAdmin(ADMIN_LOGINS.includes(login));
       localStorage.setItem('anonimcity_session', JSON.stringify(credentials));
       localStorage.setItem('credentials_saved', 'true');
       toast({
@@ -100,6 +106,7 @@ function AppContent() {
     setIsAuthenticated(false);
     setGeneratedCredentials(null);
     setCredentialsSaved(false);
+    setIsAdmin(false);
     localStorage.removeItem('anonimcity_session');
     localStorage.removeItem('credentials_saved');
     toast({
@@ -112,6 +119,7 @@ function AppContent() {
     <BrowserRouter>
       <Navigation 
         isAuthenticated={isAuthenticated}
+        isAdmin={isAdmin}
         onLogin={generateCredentials}
         onExistingLogin={handleExistingLogin}
         onLogout={handleLogout}
@@ -160,7 +168,7 @@ function AppContent() {
           isAuthenticated ? <Settings generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
         } />
         <Route path="/admin" element={
-          isAuthenticated ? <Admin generatedCredentials={generatedCredentials} /> : <Navigate to="/" replace />
+          isAuthenticated && isAdmin ? <Admin generatedCredentials={generatedCredentials} /> : <Navigate to="/" replace />
         } />
         <Route path="*" element={<NotFound />} />
       </Routes>
