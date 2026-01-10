@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import type { Category, Listing } from './AdminDialogs';
 
 interface AdminTabsProps {
@@ -36,6 +37,28 @@ export default function AdminTabs({
   openCategoryDialog,
   handleDeleteCategory,
 }: AdminTabsProps) {
+  const { toast } = useToast();
+
+  const handleModerationSettings = () => {
+    toast({
+      title: "Автоматическая модерация",
+      description: "Настройка AI-модерации находится в разработке",
+    });
+  };
+
+  const handlePricingSettings = () => {
+    toast({
+      title: "Ценообразование",
+      description: "Управление тарифами находится в разработке",
+    });
+  };
+
+  const handleNotificationSettings = () => {
+    toast({
+      title: "Уведомления",
+      description: "Настройка уведомлений находится в разработке",
+    });
+  };
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
       <TabsList className="grid w-full grid-cols-5">
@@ -282,21 +305,21 @@ export default function AdminTabs({
                   <h3 className="font-semibold">Автоматическая модерация</h3>
                   <p className="text-sm text-muted-foreground">Использовать AI для предварительной проверки</p>
                 </div>
-                <Button variant="outline">Настроить</Button>
+                <Button variant="outline" onClick={handleModerationSettings}>Настроить</Button>
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <h3 className="font-semibold">Ценообразование</h3>
                   <p className="text-sm text-muted-foreground">Управление тарифами и комиссиями</p>
                 </div>
-                <Button variant="outline">Настроить</Button>
+                <Button variant="outline" onClick={handlePricingSettings}>Настроить</Button>
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <h3 className="font-semibold">Уведомления</h3>
                   <p className="text-sm text-muted-foreground">Настройка системных уведомлений</p>
                 </div>
-                <Button variant="outline">Настроить</Button>
+                <Button variant="outline" onClick={handleNotificationSettings}>Настроить</Button>
               </div>
             </div>
           </CardContent>
