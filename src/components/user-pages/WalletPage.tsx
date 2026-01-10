@@ -14,7 +14,8 @@ import {
   exchangeCurrency,
   createStaking,
   getStakingList,
-  claimStakingRewards
+  claimStakingRewards,
+  cancelStakingEarly
 } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -187,6 +188,31 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
     }
   };
 
+  const handleCancelStaking = async (stakingId: number) => {
+    if (!generatedCredentials?.user_id) return;
+
+    if (!confirm('Досрочное завершение приведет к потере 50% процентов. Продолжить?')) {
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await cancelStakingEarly(generatedCredentials.user_id, stakingId);
+
+      if (result.success && result.data) {
+        toast({ 
+          title: 'Стейкинг завершен досрочно', 
+          description: `Возвращено ${result.data.returned_amount.toFixed(2)} CITY. Штраф: ${result.data.penalty_amount.toFixed(2)} CITY` 
+        });
+        await loadWalletData();
+      } else {
+        toast({ title: 'Ошибка', description: result.error || 'Не удалось завершить стейкинг', variant: 'destructive' });
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
@@ -199,6 +225,7 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
   const getStatusBadge = (status: string) => {
     if (status === 'completed') return <Badge className="bg-green-500">Выполнено</Badge>;
     if (status === 'active') return <Badge className="bg-blue-500">Активен</Badge>;
+    if (status === 'cancelled') return <Badge variant="outline" className="bg-orange-100 text-orange-700">Отменен</Badge>;
     if (status === 'pending') return <Badge variant="secondary">В обработке</Badge>;
     if (status === 'failed') return <Badge variant="destructive">Ошибка</Badge>;
     return <Badge>{status}</Badge>;
@@ -410,11 +437,19 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
                           </p>
                           <p className="text-muted-foreground">Завершение: {formatDate(staking.end_date)}</p>
                         </div>
-                        {staking.status === 'active' && staking.total_earned > 0 && (
-                          <Button size="sm" variant="outline" className="w-full mt-3" onClick={() => handleClaimRewards(staking.id)} disabled={isProcessing}>
-                            <Icon name="Gift" size={14} />
-                            Забрать награды
-                          </Button>
+                        {staking.status === 'active' && (
+                          <div className="flex gap-2 mt-3">
+                            {staking.total_earned > 0 && (
+                              <Button size="sm" variant="outline" className="flex-1" onClick={() => handleClaimRewards(staking.id)} disabled={isProcessing}>
+                                <Icon name="Gift" size={14} />
+                                Забрать награды
+                              </Button>
+                            )}
+                            <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleCancelStaking(staking.id)} disabled={isProcessing}>
+                              <Icon name="XCircle" size={14} />
+                              Завершить досрочно
+                            </Button>
+                          </div>
                         )}
                       </div>
                     ))}

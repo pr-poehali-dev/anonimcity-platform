@@ -46,6 +46,8 @@ def handler(event: dict, context) -> dict:
             return get_staking_list(method, event, cur, conn)
         elif action == 'claim_rewards':
             return claim_staking_rewards(method, event, cur, conn)
+        elif action == 'cancel_staking':
+            return cancel_staking_early(method, event, cur, conn)
         else:
             return {
                 'statusCode': 400,
@@ -735,6 +737,110 @@ def claim_staking_rewards(method, event, cur, conn):
         'body': json.dumps({
             'success': True,
             'claimed_amount': float(total_earned)
+        }),
+        'isBase64Encoded': False
+    }
+
+
+def cancel_staking_early(method, event, cur, conn):
+    '''Досрочное завершение стейкинга с возвратом основной суммы и потерей 50% процентов'''
+    if method != 'POST':
+        return {
+            'statusCode': 405,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
+        }
+    
+    headers = event.get('headers', {})
+    user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+    
+    if not user_id:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'User ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    body = json.loads(event.get('body', '{}'))
+    staking_id = body.get('staking_id')
+    
+    if not staking_id:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Staking ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    process_daily_rewards(cur, conn, user_id)
+    
+    cur.execute('''
+        SELECT amount_city, total_earned, status
+        FROM t_p8292906_anonimcity_platform.staking
+        WHERE id = %s AND user_id = %s
+    ''', (staking_id, user_id))
+    
+    row = cur.fetchone()
+    if not row:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Staking not found'}),
+            'isBase64Encoded': False
+        }
+    
+    amount_city, total_earned, status = row
+    
+    if status != 'active':
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Staking is not active'}),
+            'isBase64Encoded': False
+        }
+    
+    penalty_percent = Decimal('0.5')
+    rewards_after_penalty = Decimal(str(total_earned)) * (Decimal('1') - penalty_percent)
+    total_return = Decimal(str(amount_city)) + rewards_after_penalty
+    penalty_amount = Decimal(str(total_earned)) * penalty_percent
+    
+    cur.execute('''
+        UPDATE t_p8292906_anonimcity_platform.staking
+        SET status = 'cancelled'
+        WHERE id = %s
+    ''', (staking_id,))
+    
+    cur.execute('''
+        UPDATE t_p8292906_anonimcity_platform.wallets
+        SET balance_city = balance_city + %s,
+            updated_at = %s
+        WHERE user_id = %s
+    ''', (float(total_return), datetime.now(), user_id))
+    
+    cur.execute('''
+        INSERT INTO t_p8292906_anonimcity_platform.transactions 
+        (user_id, type, amount_city, description, status, completed_at)
+        VALUES (%s, 'refund', %s, %s, 'completed', %s)
+    ''', (
+        user_id,
+        float(total_return),
+        f'Досрочное завершение стейкинга. Штраф: {float(penalty_amount):.2f} CITY',
+        datetime.now()
+    ))
+    
+    conn.commit()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps({
+            'success': True,
+            'returned_amount': float(total_return),
+            'penalty_amount': float(penalty_amount),
+            'principal': float(amount_city),
+            'rewards_after_penalty': float(rewards_after_penalty)
         }),
         'isBase64Encoded': False
     }
