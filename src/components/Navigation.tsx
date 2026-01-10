@@ -34,6 +34,7 @@ export default function Navigation({
     { icon: 'Grid', label: 'Объявления', path: '/listings' },
     { icon: 'FileText', label: 'Мои объявления', path: '/my-listings' },
     { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
+    { icon: 'Video', label: 'Вирт', path: '/virt' },
     { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
     { icon: 'Wallet', label: 'Кошелек', path: '/wallet' }
   ];
@@ -142,7 +143,7 @@ export default function Navigation({
 
       {isAuthenticated && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border">
-          <div className="grid grid-cols-5 gap-1 p-2">
+          <div className="grid grid-cols-6 gap-1 p-2">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
