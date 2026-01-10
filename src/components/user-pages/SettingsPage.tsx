@@ -20,6 +20,9 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
   const [isVerifying, setIsVerifying] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    return localStorage.getItem('sound_notifications') === 'true';
+  });
 
   const secretKey = 'JBSWY3DPEHPK3PXP';
   const otpauth = `otpauth://totp/AnonimCity:${generatedCredentials?.login}?secret=${secretKey}&issuer=AnonimCity`;
@@ -63,6 +66,18 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} скопирован`);
+  };
+
+  const handleSoundToggle = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    localStorage.setItem('sound_notifications', enabled ? 'true' : 'false');
+    if (enabled) {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjWM0/LTfykGLIHO8teJOAgZaLvt');
+      audio.play().catch(() => {});
+      toast.success('Звуковые уведомления включены');
+    } else {
+      toast.success('Звуковые уведомления отключены');
+    }
   };
 
   return (
@@ -172,10 +187,10 @@ export default function SettingsPage({ generatedCredentials, twoFactorEnabled, s
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <p className="font-medium">Email уведомления</p>
-                  <p className="text-sm text-muted-foreground">Получать уведомления на почту</p>
+                  <p className="font-medium">Звуковые уведомления</p>
+                  <p className="text-sm text-muted-foreground">Проигрывать звук при новых сообщениях</p>
                 </div>
-                <Switch />
+                <Switch checked={soundEnabled} onCheckedChange={handleSoundToggle} />
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
