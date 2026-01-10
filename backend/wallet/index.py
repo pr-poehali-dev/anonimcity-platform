@@ -74,7 +74,7 @@ def get_exchange_rates(cur, conn):
         response = requests.get(
             'https://api.coingecko.com/api/v3/simple/price',
             params={
-                'ids': 'bitcoin,ethereum,tether',
+                'ids': 'bitcoin,ethereum,litecoin',
                 'vs_currencies': 'rub'
             },
             timeout=5
@@ -85,7 +85,7 @@ def get_exchange_rates(cur, conn):
             rates = {
                 'BTC': float(data.get('bitcoin', {}).get('rub', 0)),
                 'ETH': float(data.get('ethereum', {}).get('rub', 0)),
-                'USDT': float(data.get('tether', {}).get('rub', 0)),
+                'LTC': float(data.get('litecoin', {}).get('rub', 0)),
             }
             
             return {
@@ -99,7 +99,7 @@ def get_exchange_rates(cur, conn):
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({
-                    'rates': {'BTC': 6000000, 'ETH': 250000, 'USDT': 95},
+                    'rates': {'BTC': 6000000, 'ETH': 250000, 'LTC': 8000},
                     'updated_at': datetime.now().isoformat(),
                     'fallback': True
                 }),
@@ -110,7 +110,7 @@ def get_exchange_rates(cur, conn):
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
-                'rates': {'BTC': 6000000, 'ETH': 250000, 'USDT': 95},
+                'rates': {'BTC': 6000000, 'ETH': 250000, 'LTC': 8000},
                 'updated_at': datetime.now().isoformat(),
                 'fallback': True
             }),

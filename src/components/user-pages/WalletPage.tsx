@@ -35,7 +35,7 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
   const { toast } = useToast();
   const [balanceRub, setBalanceRub] = useState(0);
   const [balanceCity, setBalanceCity] = useState(0);
-  const [rates, setRates] = useState<{ BTC: number; ETH: number; USDT: number }>({ BTC: 0, ETH: 0, USDT: 0 });
+  const [rates, setRates] = useState<{ BTC: number; ETH: number; LTC: number }>({ BTC: 0, ETH: 0, LTC: 0 });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [stakings, setStakings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
   const loadExchangeRates = async () => {
     try {
       const data = await getExchangeRates();
-      setRates(data.rates || { BTC: 0, ETH: 0, USDT: 0 });
+      setRates(data.rates || { BTC: 0, ETH: 0, LTC: 0 });
     } catch (error) {
       console.error('Failed to load exchange rates:', error);
     }
@@ -304,10 +304,10 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <Icon name="DollarSign" size={16} className="text-green-500" />
-                        <p className="font-medium text-sm">USDT</p>
+                        <Icon name="CircleDollarSign" size={16} className="text-blue-400" />
+                        <p className="font-medium text-sm">LTC</p>
                       </div>
-                      <p className="text-sm font-bold">{rates.USDT.toLocaleString('ru-RU')} ₽</p>
+                      <p className="text-sm font-bold">{rates.LTC.toLocaleString('ru-RU')} ₽</p>
                     </div>
                   </div>
                   
@@ -318,7 +318,7 @@ export default function WalletPage({ generatedCredentials }: WalletPageProps) {
                       <SelectContent>
                         <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
                         <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                        <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                        <SelectItem value="LTC">Litecoin (LTC)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
