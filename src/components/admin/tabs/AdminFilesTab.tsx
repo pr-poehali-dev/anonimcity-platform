@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,10 @@ export default function AdminFilesTab() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'audio'>('all');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [files] = useState<MediaFile[]>([
+  const [files, setFiles] = useState<MediaFile[]>([
     {
       id: 1,
       filename: 'profile-photo-anna.jpg',
@@ -165,6 +167,90 @@ export default function AdminFilesTab() {
     window.open(url, '_blank');
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
+
+    setIsUploading(true);
+
+    try {
+      const uploadedFiles: MediaFile[] = [];
+      
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        
+        // Определяем тип файла
+        let fileType: 'image' | 'video' | 'audio';
+        if (file.type.startsWith('image/')) {
+          fileType = 'image';
+        } else if (file.type.startsWith('video/')) {
+          fileType = 'video';
+        } else if (file.type.startsWith('audio/')) {
+          fileType = 'audio';
+        } else {
+          toast({
+            title: "Неподдерживаемый формат",
+            description: `Файл ${file.name} имеет неподдерживаемый формат`,
+            variant: "destructive"
+          });
+          continue;
+        }
+
+        // Имитация загрузки (в реальности здесь будет API запрос)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const newFile: MediaFile = {
+          id: Date.now() + i,
+          filename: file.name,
+          type: fileType,
+          url: URL.createObjectURL(file), // В реальности это будет URL из облака
+          size: file.size,
+          uploadedBy: 'Администратор',
+          uploadedByLogin: 'admin',
+          uploadedAt: new Date().toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(',', ''),
+        };
+
+        uploadedFiles.push(newFile);
+      }
+
+      setFiles(prev => [...uploadedFiles, ...prev]);
+      
+      toast({
+        title: "Файлы загружены",
+        description: `Успешно загружено файлов: ${uploadedFiles.length}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка загрузки",
+        description: "Не удалось загрузить файлы",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteFile = (id: number) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+    toast({
+      title: "Файл удален",
+      description: "Файл успешно удален из библиотеки",
+    });
+  };
+
   const totalSize = files.reduce((sum, file) => sum + file.size, 0);
   const imageCount = files.filter(f => f.type === 'image').length;
   const videoCount = files.filter(f => f.type === 'video').length;
@@ -241,7 +327,23 @@ export default function AdminFilesTab() {
                 Общий размер: {formatFileSize(totalSize)}
               </p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+              <Button
+                onClick={handleUploadClick}
+                disabled={isUploading}
+                className="gap-2"
+              >
+                <Icon name={isUploading ? "Loader2" : "Upload"} size={16} className={isUploading ? "animate-spin" : ""} />
+                {isUploading ? 'Загрузка...' : 'Загрузить файлы'}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
               <Input
                 placeholder="Поиск файлов..."
                 value={searchQuery}
@@ -326,7 +428,7 @@ export default function AdminFilesTab() {
                   </div>
 
                   {/* Действия */}
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 flex-shrink-0 flex-wrap">
                     <Button
                       size="sm"
                       variant="outline"
@@ -344,6 +446,15 @@ export default function AdminFilesTab() {
                     >
                       <Icon name="Copy" size={14} />
                       Копировать
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteFile(file.id)}
+                      className="gap-2 text-destructive hover:text-destructive"
+                    >
+                      <Icon name="Trash2" size={14} />
+                      Удалить
                     </Button>
                   </div>
                 </div>
