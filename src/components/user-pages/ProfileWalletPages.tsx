@@ -17,7 +17,7 @@ interface ProfileWalletPagesProps {
 export default function ProfileWalletPages({ page, generatedCredentials, twoFactorEnabled, setTwoFactorEnabled }: ProfileWalletPagesProps) {
   if (page === 'profile') {
     return (
-      <div className="min-h-screen pt-24 pb-12">
+      <div className="min-h-screen pt-24 pb-24 md:pb-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <h1 className="text-3xl font-bold mb-8">Профиль</h1>
           <Card className="p-6 space-y-6">
@@ -58,7 +58,7 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
 
   if (page === 'wallet') {
     return (
-      <div className="min-h-screen pt-24 pb-12">
+      <div className="min-h-screen pt-24 pb-24 md:pb-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <h1 className="text-3xl font-bold mb-8">Кошелек</h1>
           
@@ -103,7 +103,7 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
 
   if (page === 'support') {
     return (
-      <div className="min-h-screen pt-24 pb-12">
+      <div className="min-h-screen pt-24 pb-24 md:pb-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <h1 className="text-3xl font-bold mb-8">Поддержка</h1>
           <Card className="p-6 space-y-6">
@@ -160,7 +160,7 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
 
   if (page === 'settings') {
     return (
-      <div className="min-h-screen pt-24 pb-12">
+      <div className="min-h-screen pt-24 pb-24 md:pb-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <h1 className="text-3xl font-bold mb-8">Настройки</h1>
           

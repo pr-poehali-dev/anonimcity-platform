@@ -30,48 +30,51 @@ export default function Navigation({
     setLoginInput('');
     setPasswordInput('');
   };
+  const menuItems = [
+    { icon: 'Grid', label: 'Объявления', path: '/listings' },
+    { icon: 'FileText', label: 'Мои объявления', path: '/my-listings' },
+    { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
+    { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
+    { icon: 'Wallet', label: 'Кошелек', path: '/wallet' }
+  ];
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Icon name="Shield" size={20} className="text-background" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Anonimcity
-            </span>
-          </Link>
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link 
+              to="/" 
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                <Icon name="Shield" size={20} className="text-background" />
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Anonimcity
+              </span>
+            </Link>
 
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center gap-1">
-              {[
-                { icon: 'Grid', label: 'Объявления', path: '/listings' },
-                { icon: 'FileText', label: 'Мои объявления', path: '/my-listings' },
-                { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
-                { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
-                { icon: 'Wallet', label: 'Кошелек', path: '/wallet' }
-              ].map((item) => (
-                <Button
-                  key={item.path}
-                  variant={location.pathname === item.path ? 'default' : 'ghost'}
-                  size="sm"
-                  asChild
-                  className="gap-2"
-                >
-                  <Link to={item.path}>
-                    <Icon name={item.icon as any} size={16} />
-                    <span className="hidden lg:inline">{item.label}</span>
-                  </Link>
-                </Button>
-              ))}
-            </div>
-          )}
+            {isAuthenticated && (
+              <div className="hidden md:flex items-center gap-1">
+                {menuItems.map((item) => (
+                  <Button
+                    key={item.path}
+                    variant={location.pathname === item.path ? 'default' : 'ghost'}
+                    size="sm"
+                    asChild
+                    className="gap-2"
+                  >
+                    <Link to={item.path}>
+                      <Icon name={item.icon as any} size={16} />
+                      <span className="hidden lg:inline">{item.label}</span>
+                    </Link>
+                  </Button>
+                ))}
+              </div>
+            )}
 
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
                 <Button variant="ghost" size="sm" asChild>
@@ -136,6 +139,28 @@ export default function Navigation({
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+
+      {isAuthenticated && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border">
+          <div className="grid grid-cols-5 gap-1 p-2">
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-colors ${
+                  location.pathname === item.path
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <Icon name={item.icon as any} size={20} />
+                <span className="text-[10px] leading-none">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
+    </>
   );
 }

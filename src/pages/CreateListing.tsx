@@ -55,7 +55,7 @@ export default function CreateListing() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-12 bg-background">
+    <div className="min-h-screen pt-24 pb-24 md:pb-12 bg-background">
       <div className="container mx-auto px-4 max-w-3xl">
         <Button
           variant="ghost"
