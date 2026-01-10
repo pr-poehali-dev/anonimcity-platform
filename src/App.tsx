@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import Wallet from "./pages/Wallet";
 import Support from "./pages/Support";
 import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { registerUser, loginUser } from "./lib/auth";
 
@@ -157,6 +158,9 @@ function AppContent() {
         } />
         <Route path="/settings" element={
           isAuthenticated ? <Settings generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
+        } />
+        <Route path="/admin" element={
+          isAuthenticated ? <Admin generatedCredentials={generatedCredentials} /> : <Navigate to="/" replace />
         } />
         <Route path="*" element={<NotFound />} />
       </Routes>
