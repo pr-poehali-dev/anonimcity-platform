@@ -78,6 +78,11 @@ export default function Navigation({
             {isAuthenticated ? (
               <>
                 <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin">
+                    <Icon name="Shield" size={18} />
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
                   <Link to="/settings">
                     <Icon name="Settings" size={18} />
                   </Link>
