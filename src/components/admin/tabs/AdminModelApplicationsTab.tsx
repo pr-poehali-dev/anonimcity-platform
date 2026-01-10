@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { getApplications, updateApplicationStatus, deleteApplication } from '@/lib/api';
 
 interface ModelApplication {
   id: number;
@@ -26,52 +27,90 @@ interface ModelApplication {
 export default function AdminModelApplicationsTab() {
   const { toast } = useToast();
   const [applications, setApplications] = useState<ModelApplication[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadApplications();
   }, []);
 
-  const loadApplications = () => {
-    const stored = localStorage.getItem('model_applications');
-    if (stored) {
-      setApplications(JSON.parse(stored));
+  const loadApplications = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getApplications();
+      const mapped = data.map((app: any) => ({
+        id: app.id,
+        nickname: app.name,
+        age: app.age || 0,
+        city: app.city || '',
+        gender: 'female' as const,
+        videoPrice: null,
+        audioPrice: null,
+        chatPrice: null,
+        description: app.experience || '',
+        photo: null,
+        hasAudio: false,
+        status: app.status || 'pending',
+        submittedAt: app.submitted_at,
+      }));
+      setApplications(mapped);
+    } catch (error) {
+      console.error('Failed to load applications:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleApprove = (id: number) => {
-    const updated = applications.map(app =>
-      app.id === id ? { ...app, status: 'approved' as const } : app
-    );
-    setApplications(updated);
-    localStorage.setItem('model_applications', JSON.stringify(updated));
+  const handleApprove = async (id: number) => {
+    const result = await updateApplicationStatus(id, 'approved');
     
-    toast({
-      title: "Заявка одобрена",
-      description: "Модель добавлена в каталог",
-    });
+    if (result.success) {
+      await loadApplications();
+      toast({
+        title: "Заявка одобрена",
+        description: "Модель добавлена в каталог",
+      });
+    } else {
+      toast({
+        title: "Ошибка",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleReject = (id: number) => {
-    const updated = applications.map(app =>
-      app.id === id ? { ...app, status: 'rejected' as const } : app
-    );
-    setApplications(updated);
-    localStorage.setItem('model_applications', JSON.stringify(updated));
+  const handleReject = async (id: number) => {
+    const result = await updateApplicationStatus(id, 'rejected');
     
-    toast({
-      title: "Заявка отклонена",
-      description: "Пользователь будет уведомлен",
-    });
+    if (result.success) {
+      await loadApplications();
+      toast({
+        title: "Заявка отклонена",
+        description: "Пользователь будет уведомлен",
+      });
+    } else {
+      toast({
+        title: "Ошибка",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDelete = (id: number) => {
-    const updated = applications.filter(app => app.id !== id);
-    setApplications(updated);
-    localStorage.setItem('model_applications', JSON.stringify(updated));
+  const handleDelete = async (id: number) => {
+    const success = await deleteApplication(id);
     
-    toast({
-      title: "Заявка удалена",
-    });
+    if (success) {
+      await loadApplications();
+      toast({
+        title: "Заявка удалена",
+      });
+    } else {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить заявку",
+        variant: "destructive",
+      });
+    }
   };
 
   const pendingApplications = applications.filter(app => app.status === 'pending');

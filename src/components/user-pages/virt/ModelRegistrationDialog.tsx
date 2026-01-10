@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { createApplication } from '@/lib/api';
 
 export default function ModelRegistrationDialog() {
   const { toast } = useToast();
@@ -113,33 +114,27 @@ export default function ModelRegistrationDialog() {
     setIsSubmitting(true);
 
     try {
-      // Имитация отправки заявки (в реальности здесь будет API запрос)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Сохраняем заявку в localStorage для демонстрации
-      const application = {
-        id: Date.now(),
-        nickname,
+      const result = await createApplication({
+        name: nickname,
         age: parseInt(age),
         city,
-        gender,
-        videoPrice: videoPrice ? parseFloat(videoPrice) : null,
-        audioPrice: audioPrice ? parseFloat(audioPrice) : null,
-        chatPrice: chatPrice ? parseFloat(chatPrice) : null,
-        description,
-        photo: uploadedPhoto,
-        hasAudio: !!audioBlob,
-        status: 'pending',
-        submittedAt: new Date().toISOString(),
-      };
-
-      const existingApplications = JSON.parse(localStorage.getItem('model_applications') || '[]');
-      localStorage.setItem('model_applications', JSON.stringify([...existingApplications, application]));
-
-      toast({
-        title: "Заявка отправлена!",
-        description: "Администратор рассмотрит вашу заявку в течение 24 часов",
+        telegram: '',
+        experience: `${gender}|video:${videoPrice}|audio:${audioPrice}|chat:${chatPrice}|desc:${description}|photo:${uploadedPhoto ? 'yes' : 'no'}|audio:${audioBlob ? 'yes' : 'no'}`
       });
+
+      if (result.success) {
+        toast({
+          title: "Заявка отправлена!",
+          description: "Администратор рассмотрит вашу заявку в течение 24 часов",
+        });
+      } else {
+        toast({
+          title: "Ошибка",
+          description: result.error || "Не удалось отправить заявку",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Очищаем форму
       setNickname('');
