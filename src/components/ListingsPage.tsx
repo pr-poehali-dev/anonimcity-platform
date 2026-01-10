@@ -88,12 +88,6 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Объявления</h1>
-          <Button asChild className="gap-2">
-            <Link to="/create-listing">
-              <Icon name="Plus" size={16} />
-              Создать объявление
-            </Link>
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
