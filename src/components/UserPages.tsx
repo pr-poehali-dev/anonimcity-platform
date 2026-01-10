@@ -5,18 +5,18 @@ import ProfileWalletPages from './user-pages/ProfileWalletPages';
 
 interface UserPagesProps {
   page: 'my-listings' | 'messages' | 'files' | 'profile' | 'wallet' | 'support' | 'settings';
-  generatedCredentials: { login: string; password: string } | null;
+  generatedCredentials: { login: string; password: string; user_id?: number } | null;
   twoFactorEnabled: boolean;
   setTwoFactorEnabled: (enabled: boolean) => void;
 }
 
 export default function UserPages({ page, generatedCredentials, twoFactorEnabled, setTwoFactorEnabled }: UserPagesProps) {
   if (page === 'my-listings') {
-    return <MyListingsPage />;
+    return <MyListingsPage generatedCredentials={generatedCredentials} />;
   }
 
   if (page === 'messages') {
-    return <MessagesPage />;
+    return <MessagesPage generatedCredentials={generatedCredentials} />;
   }
 
   if (page === 'files') {

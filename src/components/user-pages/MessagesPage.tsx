@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import { getMessages, markMessageAsRead } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface Message {
   id: number;
@@ -16,30 +18,56 @@ interface Message {
   isRead: boolean;
 }
 
-export default function MessagesPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      sender: 'Администрация Anonimcity',
-      senderType: 'admin',
-      subject: 'Добро пожаловать на платформу',
-      preview: 'Здравствуйте! Благодарим за регистрацию на нашей платформе...',
-      text: 'Здравствуйте! Благодарим за регистрацию на нашей платформе. Мы рады приветствовать вас в сообществе Anonimcity. Здесь вы можете безопасно размещать объявления и общаться с другими пользователями. Если у вас возникнут вопросы, обращайтесь в поддержку.',
-      date: '2024-01-10 10:00',
-      isRead: false,
-    },
-  ]);
+interface MessagesPageProps {
+  generatedCredentials: { login: string; password: string; user_id?: number } | null;
+}
 
+export default function MessagesPage({ generatedCredentials }: MessagesPageProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleOpenMessage = (message: Message) => {
+  useEffect(() => {
+    loadMessages();
+    const interval = setInterval(loadMessages, 5000);
+    return () => clearInterval(interval);
+  }, [generatedCredentials]);
+
+  const loadMessages = async () => {
+    if (!generatedCredentials?.user_id) return;
+    
+    try {
+      const data = await getMessages(generatedCredentials.user_id);
+      setMessages(data);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenMessage = async (message: Message) => {
     setSelectedMessage(message);
     setDialogOpen(true);
-    setMessages(messages.map(m => m.id === message.id ? { ...m, isRead: true } : m));
+    
+    if (!message.isRead && generatedCredentials?.user_id) {
+      const success = await markMessageAsRead(generatedCredentials.user_id, message.id);
+      if (success) {
+        setMessages(messages.map(m => m.id === message.id ? { ...m, isRead: true } : m));
+      }
+    }
   };
 
   const unreadCount = messages.filter(m => !m.isRead).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-24 md:pb-12 flex items-center justify-center">
+        <Icon name="Loader2" size={32} className="animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-12">

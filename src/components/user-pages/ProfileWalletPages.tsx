@@ -9,10 +9,11 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
+import { createSupportTicket } from '@/lib/api';
 
 interface ProfileWalletPagesProps {
   page: 'profile' | 'wallet' | 'support' | 'settings';
-  generatedCredentials: { login: string; password: string } | null;
+  generatedCredentials: { login: string; password: string; user_id?: number } | null;
   twoFactorEnabled: boolean;
   setTwoFactorEnabled: (enabled: boolean) => void;
 }
@@ -214,7 +215,7 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
       return;
     }
 
-    if (!generatedCredentials) {
+    if (!generatedCredentials?.user_id) {
       toast.error('Необходимо авторизоваться');
       return;
     }
@@ -222,26 +223,23 @@ export default function ProfileWalletPages({ page, generatedCredentials, twoFact
     setIsSending(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await createSupportTicket(
+        generatedCredentials.user_id,
+        supportSubject,
+        supportMessage
+      );
 
-      const ticket = {
-        id: Date.now(),
-        userLogin: generatedCredentials.login,
-        subject: supportSubject,
-        message: supportMessage,
-        status: 'new',
-        createdAt: new Date().toISOString(),
-      };
-
-      const existingTickets = JSON.parse(localStorage.getItem('support_tickets') || '[]');
-      localStorage.setItem('support_tickets', JSON.stringify([ticket, ...existingTickets]));
-
-      toast.success('Обращение отправлено', {
-        description: 'Поддержка ответит в ближайшее время',
-      });
-
-      setSupportSubject('');
-      setSupportMessage('');
+      if (result.success) {
+        toast.success('Обращение отправлено', {
+          description: 'Поддержка ответит в ближайшее время',
+        });
+        setSupportSubject('');
+        setSupportMessage('');
+      } else {
+        toast.error('Ошибка отправки', {
+          description: result.error || 'Попробуйте снова',
+        });
+      }
     } catch (error) {
       toast.error('Ошибка отправки', {
         description: 'Попробуйте снова',
