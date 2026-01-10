@@ -117,11 +117,11 @@ export default function MyListingsPage() {
                 Создать объявление
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Создать объявление</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 pb-4">
                 <Tabs defaultValue="free">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="free">Бесплатное</TabsTrigger>
