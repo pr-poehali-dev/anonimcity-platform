@@ -108,7 +108,7 @@ export default function HomePage({ isAuthenticated, generatedCredentials, onLogi
             ].map((feature, i) => (
               <Card key={i} className="p-6 bg-card/30 backdrop-blur border-border/50 hover:border-primary/50 transition-all">
                 <div className="space-y-3">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto">
                     <Icon name={feature.icon as any} size={24} className="text-primary" />
                   </div>
                   <h3 className="font-semibold">{feature.title}</h3>
