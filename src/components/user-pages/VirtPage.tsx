@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import ModelCard from './virt/ModelCard';
 import ModelRegistrationDialog from './virt/ModelRegistrationDialog';
+import CallControls from './virt/CallControls';
+import AudioRecorder from './virt/AudioRecorder';
 import { mockModels } from './virt/mockData';
 
 interface VirtPageProps {
@@ -11,6 +14,22 @@ interface VirtPageProps {
 }
 
 export default function VirtPage({ generatedCredentials }: VirtPageProps) {
+  const [activeCall, setActiveCall] = useState<{ type: 'video' | 'audio'; modelName: string } | null>(null);
+
+  if (activeCall) {
+    return (
+      <div className="min-h-screen pt-24 pb-24 md:pb-12">
+        <div className="container mx-auto px-4">
+          <CallControls
+            type={activeCall.type}
+            modelName={activeCall.modelName}
+            onEndCall={() => setActiveCall(null)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-12">
       <div className="container mx-auto px-4">
@@ -23,7 +42,7 @@ export default function VirtPage({ generatedCredentials }: VirtPageProps) {
         </div>
 
         <Tabs defaultValue="video" className="mb-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="video" className="gap-2">
               <Icon name="Video" size={16} />
               <span className="hidden sm:inline">Видеозвонки</span>
@@ -35,6 +54,10 @@ export default function VirtPage({ generatedCredentials }: VirtPageProps) {
             <TabsTrigger value="chat" className="gap-2">
               <Icon name="MessageCircle" size={16} />
               <span className="hidden sm:inline">Переписка</span>
+            </TabsTrigger>
+            <TabsTrigger value="recorder" className="gap-2">
+              <Icon name="Mic" size={16} />
+              <span className="hidden sm:inline">Запись аудио</span>
             </TabsTrigger>
           </TabsList>
 
@@ -66,6 +89,10 @@ export default function VirtPage({ generatedCredentials }: VirtPageProps) {
                   <ModelCard key={model.id} model={model} serviceType="chat" />
                 ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="recorder" className="mt-6">
+            <AudioRecorder />
           </TabsContent>
         </Tabs>
       </div>
