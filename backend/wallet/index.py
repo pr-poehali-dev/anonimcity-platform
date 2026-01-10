@@ -1,12 +1,12 @@
 import json
 import os
 import psycopg2
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 import requests
 
 def handler(event: dict, context) -> dict:
-    '''API для управления кошельком: получение баланса, курсов, пополнение'''
+    '''API для управления кошельком: баланс, обмен RUB/CITY, стейкинг'''
     
     method = event.get('httpMethod', 'GET')
     
@@ -38,6 +38,14 @@ def handler(event: dict, context) -> dict:
             return get_transactions(method, event, cur, conn)
         elif action == 'deposit':
             return handle_deposit(method, event, cur, conn)
+        elif action == 'exchange':
+            return handle_exchange(method, event, cur, conn)
+        elif action == 'staking':
+            return handle_staking(method, event, cur, conn)
+        elif action == 'staking_list':
+            return get_staking_list(method, event, cur, conn)
+        elif action == 'claim_rewards':
+            return claim_staking_rewards(method, event, cur, conn)
         else:
             return {
                 'statusCode': 400,
@@ -61,7 +69,6 @@ def handler(event: dict, context) -> dict:
 def get_exchange_rates(cur, conn):
     '''Получить актуальные курсы криптовалют к рублю'''
     try:
-        # Используем публичное API CoinGecko для получения курсов
         response = requests.get(
             'https://api.coingecko.com/api/v3/simple/price',
             params={
@@ -86,7 +93,6 @@ def get_exchange_rates(cur, conn):
                 'isBase64Encoded': False
             }
         else:
-            # Fallback курсы если API недоступен
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -98,7 +104,6 @@ def get_exchange_rates(cur, conn):
                 'isBase64Encoded': False
             }
     except Exception as e:
-        # Возвращаем fallback курсы
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -112,7 +117,7 @@ def get_exchange_rates(cur, conn):
 
 
 def get_wallet_balance(method, event, cur, conn):
-    '''Получить баланс кошелька пользователя'''
+    '''Получить баланс кошелька (RUB и CITY)'''
     if method != 'GET':
         return {
             'statusCode': 405,
@@ -132,21 +137,19 @@ def get_wallet_balance(method, event, cur, conn):
             'isBase64Encoded': False
         }
     
-    # Получаем кошелек
     cur.execute('''
-        SELECT balance_rub, created_at, updated_at
+        SELECT balance_rub, balance_city, created_at, updated_at
         FROM t_p8292906_anonimcity_platform.wallets
         WHERE user_id = %s
     ''', (user_id,))
     
     row = cur.fetchone()
     
-    # Создаем кошелек, если не существует
     if not row:
         cur.execute('''
-            INSERT INTO t_p8292906_anonimcity_platform.wallets (user_id, balance_rub)
-            VALUES (%s, 0.00)
-            RETURNING balance_rub, created_at, updated_at
+            INSERT INTO t_p8292906_anonimcity_platform.wallets (user_id, balance_rub, balance_city)
+            VALUES (%s, 0.00, 0.00)
+            RETURNING balance_rub, balance_city, created_at, updated_at
         ''', (user_id,))
         row = cur.fetchone()
         conn.commit()
@@ -159,12 +162,11 @@ def get_wallet_balance(method, event, cur, conn):
             'isBase64Encoded': False
         }
     
-    conn.commit()
-    
     wallet = {
         'balance_rub': float(row[0]),
-        'created_at': row[1].isoformat() if row[1] else None,
-        'updated_at': row[2].isoformat() if row[2] else None
+        'balance_city': float(row[1]),
+        'created_at': row[2].isoformat() if row[2] else None,
+        'updated_at': row[3].isoformat() if row[3] else None
     }
     
     return {
@@ -176,7 +178,7 @@ def get_wallet_balance(method, event, cur, conn):
 
 
 def get_transactions(method, event, cur, conn):
-    '''Получить историю транзакций пользователя'''
+    '''Получить историю транзакций'''
     if method != 'GET':
         return {
             'statusCode': 405,
@@ -197,7 +199,7 @@ def get_transactions(method, event, cur, conn):
         }
     
     cur.execute('''
-        SELECT id, type, amount_crypto, crypto_currency, amount_rub, 
+        SELECT id, type, amount_crypto, crypto_currency, amount_rub, amount_city,
                exchange_rate, description, status, created_at, completed_at
         FROM t_p8292906_anonimcity_platform.transactions
         WHERE user_id = %s
@@ -213,11 +215,12 @@ def get_transactions(method, event, cur, conn):
             'amount_crypto': float(row[2]) if row[2] else None,
             'crypto_currency': row[3],
             'amount_rub': float(row[4]),
-            'exchange_rate': float(row[5]) if row[5] else None,
-            'description': row[6],
-            'status': row[7],
-            'created_at': row[8].isoformat() if row[8] else None,
-            'completed_at': row[9].isoformat() if row[9] else None
+            'amount_city': float(row[5]) if row[5] else None,
+            'exchange_rate': float(row[6]) if row[6] else None,
+            'description': row[7],
+            'status': row[8],
+            'created_at': row[9].isoformat() if row[9] else None,
+            'completed_at': row[10].isoformat() if row[10] else None
         })
     
     return {
@@ -229,7 +232,7 @@ def get_transactions(method, event, cur, conn):
 
 
 def handle_deposit(method, event, cur, conn):
-    '''Обработка пополнения баланса'''
+    '''Пополнение баланса криптовалютой'''
     if method != 'POST':
         return {
             'statusCode': 405,
@@ -261,7 +264,6 @@ def handle_deposit(method, event, cur, conn):
             'isBase64Encoded': False
         }
     
-    # Получаем актуальный курс
     rates_response = get_exchange_rates(cur, conn)
     rates_data = json.loads(rates_response['body'])
     exchange_rate = rates_data['rates'].get(crypto_currency, 0)
@@ -274,10 +276,8 @@ def handle_deposit(method, event, cur, conn):
             'isBase64Encoded': False
         }
     
-    # Конвертируем криптовалюту в рубли
     amount_rub = Decimal(str(amount_crypto)) * Decimal(str(exchange_rate))
     
-    # Создаем транзакцию
     cur.execute('''
         INSERT INTO t_p8292906_anonimcity_platform.transactions 
         (user_id, type, amount_crypto, crypto_currency, amount_rub, exchange_rate, description, status, completed_at)
@@ -295,7 +295,6 @@ def handle_deposit(method, event, cur, conn):
     
     transaction_id = cur.fetchone()[0]
     
-    # Обновляем баланс кошелька
     cur.execute('''
         UPDATE t_p8292906_anonimcity_platform.wallets
         SET balance_rub = balance_rub + %s,
@@ -315,6 +314,427 @@ def handle_deposit(method, event, cur, conn):
             'crypto_currency': crypto_currency,
             'amount_rub': float(amount_rub),
             'exchange_rate': exchange_rate
+        }),
+        'isBase64Encoded': False
+    }
+
+
+def handle_exchange(method, event, cur, conn):
+    '''Обмен RUB <-> CITY (1 CITY = 1 RUB)'''
+    if method != 'POST':
+        return {
+            'statusCode': 405,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
+        }
+    
+    headers = event.get('headers', {})
+    user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+    
+    if not user_id:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'User ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    body = json.loads(event.get('body', '{}'))
+    from_currency = body.get('from_currency')
+    amount = body.get('amount')
+    
+    if not from_currency or not amount or float(amount) <= 0:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Invalid parameters'}),
+            'isBase64Encoded': False
+        }
+    
+    amount_decimal = Decimal(str(amount))
+    
+    cur.execute('''
+        SELECT balance_rub, balance_city
+        FROM t_p8292906_anonimcity_platform.wallets
+        WHERE user_id = %s
+    ''', (user_id,))
+    
+    row = cur.fetchone()
+    if not row:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Wallet not found'}),
+            'isBase64Encoded': False
+        }
+    
+    balance_rub, balance_city = Decimal(str(row[0])), Decimal(str(row[1]))
+    
+    if from_currency == 'RUB':
+        if balance_rub < amount_decimal:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Insufficient RUB balance'}),
+                'isBase64Encoded': False
+            }
+        
+        new_balance_rub = balance_rub - amount_decimal
+        new_balance_city = balance_city + amount_decimal
+        description = f'Обмен {amount} RUB → CITY'
+        
+    elif from_currency == 'CITY':
+        if balance_city < amount_decimal:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Insufficient CITY balance'}),
+                'isBase64Encoded': False
+            }
+        
+        new_balance_rub = balance_rub + amount_decimal
+        new_balance_city = balance_city - amount_decimal
+        description = f'Обмен {amount} CITY → RUB'
+    else:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Invalid currency'}),
+            'isBase64Encoded': False
+        }
+    
+    cur.execute('''
+        UPDATE t_p8292906_anonimcity_platform.wallets
+        SET balance_rub = %s,
+            balance_city = %s,
+            updated_at = %s
+        WHERE user_id = %s
+    ''', (float(new_balance_rub), float(new_balance_city), datetime.now(), user_id))
+    
+    cur.execute('''
+        INSERT INTO t_p8292906_anonimcity_platform.transactions 
+        (user_id, type, amount_rub, amount_city, description, status, completed_at)
+        VALUES (%s, 'exchange', %s, %s, %s, 'completed', %s)
+        RETURNING id
+    ''', (user_id, float(amount_decimal), float(amount_decimal), description, datetime.now()))
+    
+    transaction_id = cur.fetchone()[0]
+    conn.commit()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps({
+            'success': True,
+            'transaction_id': transaction_id,
+            'new_balance_rub': float(new_balance_rub),
+            'new_balance_city': float(new_balance_city)
+        }),
+        'isBase64Encoded': False
+    }
+
+
+def handle_staking(method, event, cur, conn):
+    '''Создание стейкинга'''
+    if method != 'POST':
+        return {
+            'statusCode': 405,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
+        }
+    
+    headers = event.get('headers', {})
+    user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+    
+    if not user_id:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'User ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    body = json.loads(event.get('body', '{}'))
+    amount_city = body.get('amount_city')
+    period_months = body.get('period_months')
+    
+    if not amount_city or float(amount_city) <= 0:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Invalid amount'}),
+            'isBase64Encoded': False
+        }
+    
+    rate_map = {1: 30, 3: 40, 6: 50, 12: 60}
+    if period_months not in rate_map:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Invalid period (must be 1, 3, 6, or 12 months)'}),
+            'isBase64Encoded': False
+        }
+    
+    annual_rate = rate_map[period_months]
+    amount_decimal = Decimal(str(amount_city))
+    
+    cur.execute('''
+        SELECT balance_city
+        FROM t_p8292906_anonimcity_platform.wallets
+        WHERE user_id = %s
+    ''', (user_id,))
+    
+    row = cur.fetchone()
+    if not row or Decimal(str(row[0])) < amount_decimal:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Insufficient CITY balance'}),
+            'isBase64Encoded': False
+        }
+    
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=period_months * 30)
+    
+    cur.execute('''
+        INSERT INTO t_p8292906_anonimcity_platform.staking 
+        (user_id, amount_city, period_months, annual_rate, start_date, end_date, last_reward_date, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
+        RETURNING id
+    ''', (user_id, float(amount_decimal), period_months, annual_rate, start_date, end_date, start_date))
+    
+    staking_id = cur.fetchone()[0]
+    
+    cur.execute('''
+        UPDATE t_p8292906_anonimcity_platform.wallets
+        SET balance_city = balance_city - %s,
+            updated_at = %s
+        WHERE user_id = %s
+    ''', (float(amount_decimal), datetime.now(), user_id))
+    
+    conn.commit()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps({
+            'success': True,
+            'staking_id': staking_id,
+            'amount_city': float(amount_decimal),
+            'period_months': period_months,
+            'annual_rate': annual_rate,
+            'end_date': end_date.isoformat()
+        }),
+        'isBase64Encoded': False
+    }
+
+
+def get_staking_list(method, event, cur, conn):
+    '''Получить список стейкингов пользователя с начислением процентов'''
+    if method != 'GET':
+        return {
+            'statusCode': 405,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
+        }
+    
+    headers = event.get('headers', {})
+    user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+    
+    if not user_id:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'User ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    process_daily_rewards(cur, conn, user_id)
+    
+    cur.execute('''
+        SELECT id, amount_city, period_months, annual_rate, start_date, end_date,
+               last_reward_date, total_earned, status, created_at
+        FROM t_p8292906_anonimcity_platform.staking
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    ''', (user_id,))
+    
+    stakings = []
+    for row in cur.fetchall():
+        stakings.append({
+            'id': row[0],
+            'amount_city': float(row[1]),
+            'period_months': row[2],
+            'annual_rate': float(row[3]),
+            'start_date': row[4].isoformat() if row[4] else None,
+            'end_date': row[5].isoformat() if row[5] else None,
+            'last_reward_date': row[6].isoformat() if row[6] else None,
+            'total_earned': float(row[7]),
+            'status': row[8],
+            'created_at': row[9].isoformat() if row[9] else None
+        })
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps(stakings),
+        'isBase64Encoded': False
+    }
+
+
+def process_daily_rewards(cur, conn, user_id):
+    '''Начислить ежедневные проценты по всем активным стейкингам'''
+    cur.execute('''
+        SELECT id, amount_city, annual_rate, last_reward_date, end_date
+        FROM t_p8292906_anonimcity_platform.staking
+        WHERE user_id = %s AND status = 'active'
+    ''', (user_id,))
+    
+    now = datetime.now()
+    
+    for row in cur.fetchall():
+        staking_id, amount, annual_rate, last_reward_date, end_date = row
+        
+        if now > end_date:
+            cur.execute('''
+                UPDATE t_p8292906_anonimcity_platform.staking
+                SET status = 'completed'
+                WHERE id = %s
+            ''', (staking_id,))
+            
+            cur.execute('''
+                SELECT COALESCE(SUM(amount_city), 0) + %s
+                FROM t_p8292906_anonimcity_platform.staking_rewards
+                WHERE staking_id = %s
+            ''', (amount, staking_id))
+            
+            total_return = cur.fetchone()[0]
+            
+            cur.execute('''
+                UPDATE t_p8292906_anonimcity_platform.wallets
+                SET balance_city = balance_city + %s,
+                    updated_at = %s
+                WHERE user_id = %s
+            ''', (float(total_return), now, user_id))
+            
+            continue
+        
+        days_passed = (now - last_reward_date).days
+        
+        if days_passed >= 1:
+            daily_rate = Decimal(str(annual_rate)) / Decimal('365')
+            amount_decimal = Decimal(str(amount))
+            daily_reward = amount_decimal * daily_rate / Decimal('100')
+            total_reward = daily_reward * Decimal(str(days_passed))
+            
+            for _ in range(days_passed):
+                cur.execute('''
+                    INSERT INTO t_p8292906_anonimcity_platform.staking_rewards
+                    (staking_id, amount_city, reward_date)
+                    VALUES (%s, %s, %s)
+                ''', (staking_id, float(daily_reward), now))
+            
+            cur.execute('''
+                UPDATE t_p8292906_anonimcity_platform.staking
+                SET last_reward_date = %s,
+                    total_earned = total_earned + %s
+                WHERE id = %s
+            ''', (now, float(total_reward), staking_id))
+    
+    conn.commit()
+
+
+def claim_staking_rewards(method, event, cur, conn):
+    '''Забрать награды со стейкинга досрочно (без основной суммы)'''
+    if method != 'POST':
+        return {
+            'statusCode': 405,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
+        }
+    
+    headers = event.get('headers', {})
+    user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+    
+    if not user_id:
+        return {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'User ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    body = json.loads(event.get('body', '{}'))
+    staking_id = body.get('staking_id')
+    
+    if not staking_id:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Staking ID required'}),
+            'isBase64Encoded': False
+        }
+    
+    process_daily_rewards(cur, conn, user_id)
+    
+    cur.execute('''
+        SELECT total_earned, status
+        FROM t_p8292906_anonimcity_platform.staking
+        WHERE id = %s AND user_id = %s
+    ''', (staking_id, user_id))
+    
+    row = cur.fetchone()
+    if not row:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Staking not found'}),
+            'isBase64Encoded': False
+        }
+    
+    total_earned, status = row
+    
+    if status != 'active':
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Staking is not active'}),
+            'isBase64Encoded': False
+        }
+    
+    if total_earned <= 0:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'No rewards to claim'}),
+            'isBase64Encoded': False
+        }
+    
+    cur.execute('''
+        UPDATE t_p8292906_anonimcity_platform.wallets
+        SET balance_city = balance_city + %s,
+            updated_at = %s
+        WHERE user_id = %s
+    ''', (total_earned, datetime.now(), user_id))
+    
+    cur.execute('''
+        UPDATE t_p8292906_anonimcity_platform.staking
+        SET total_earned = 0
+        WHERE id = %s
+    ''', (staking_id,))
+    
+    conn.commit()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps({
+            'success': True,
+            'claimed_amount': float(total_earned)
         }),
         'isBase64Encoded': False
     }

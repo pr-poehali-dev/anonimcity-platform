@@ -550,7 +550,7 @@ export async function getWalletBalance(userId: number) {
     return await response.json();
   } catch (error) {
     console.error('Get wallet balance error:', error);
-    return { balance_rub: 0 };
+    return { balance_rub: 0, balance_city: 0 };
   }
 }
 
@@ -586,6 +586,104 @@ export async function depositToWallet(userId: number, amountCrypto: number, cryp
       body: JSON.stringify({
         amount_crypto: amountCrypto,
         crypto_currency: cryptoCurrency,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function exchangeCurrency(userId: number, fromCurrency: string, amount: number) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=exchange`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        from_currency: fromCurrency,
+        amount: amount,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function createStaking(userId: number, amountCity: number, periodMonths: number) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=staking`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        amount_city: amountCity,
+        period_months: periodMonths,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function getStakingList(userId: number) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=staking_list`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch staking list');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get staking list error:', error);
+    return [];
+  }
+}
+
+export async function claimStakingRewards(userId: number, stakingId: number) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=claim_rewards`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        staking_id: stakingId,
       }),
     });
     

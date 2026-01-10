@@ -12,7 +12,7 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Get wallet balance",
+      "name": "Get wallet balance with CITY",
       "method": "GET",
       "path": "/?action=balance",
       "headers": {
@@ -21,9 +21,18 @@
       "expectedStatus": 200,
       "expectedBody": {
         "balance_rub": "number",
-        "created_at": "string"
+        "balance_city": "number"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get staking list",
+      "method": "GET",
+      "path": "/?action=staking_list",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "expectedStatus": 200
     }
   ]
 }
