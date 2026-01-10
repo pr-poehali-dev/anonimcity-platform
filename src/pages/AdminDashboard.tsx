@@ -43,6 +43,17 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(true);
 
+  const [categoryDialog, setCategoryDialog] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [newCategory, setNewCategory] = useState({ name: '', description: '', icon: 'Tag' });
+
+  const [listingDialog, setListingDialog] = useState(false);
+  const [editingListing, setEditingListing] = useState<Listing | null>(null);
+  const [viewDialog, setViewDialog] = useState(false);
+  const [viewingListing, setViewingListing] = useState<Listing | null>(null);
+  const [selectedTab, setSelectedTab] = useState('moderation');
+  const [createListingDialog, setCreateListingDialog] = useState(false);
+
   useEffect(() => {
     loadCategories();
     loadModels();
@@ -148,17 +159,6 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     prevNewMessagesCount.current = newMessagesCount;
     prevNewResponsesCount.current = newResponsesCount;
   }, [newMessagesCount, newResponsesCount]);
-
-  const [categoryDialog, setCategoryDialog] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [newCategory, setNewCategory] = useState({ name: '', description: '', icon: 'Tag' });
-
-  const [listingDialog, setListingDialog] = useState(false);
-  const [editingListing, setEditingListing] = useState<Listing | null>(null);
-  const [viewDialog, setViewDialog] = useState(false);
-  const [viewingListing, setViewingListing] = useState<Listing | null>(null);
-  const [selectedTab, setSelectedTab] = useState('moderation');
-  const [createListingDialog, setCreateListingDialog] = useState(false);
 
   const handleLogout = () => {
     onAdminLogout();
