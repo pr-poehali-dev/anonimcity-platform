@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import { useState } from 'react';
 
 type Service = 'Секс Выезд' | 'Секс Апартаменты' | 'Ужин' | 'Вечеринка' | 'Виртуальный секс';
 type ListingType = 'Индивидуалка' | 'Агенство';
@@ -22,6 +23,7 @@ interface Listing {
   type?: ListingType;
   price?: string;
   images?: string[];
+  audioGreeting?: string;
   author: string;
   createdAt: string;
   isMine?: boolean;
@@ -32,7 +34,23 @@ interface ListingsPageProps {
 }
 
 export default function ListingsPage({ listings }: ListingsPageProps) {
+  const [playingAudio, setPlayingAudio] = useState<number | null>(null);
+  
+  const sortedListings = [...listings].sort((a, b) => {
+    if (a.isPremium && !b.isPremium) return -1;
+    if (!a.isPremium && b.isPremium) return 1;
+    return 0;
+  });
+
   const myListings = listings.filter(l => l.isMine);
+
+  const handlePlayAudio = (listingId: number) => {
+    if (playingAudio === listingId) {
+      setPlayingAudio(null);
+    } else {
+      setPlayingAudio(listingId);
+    }
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-12">
@@ -72,9 +90,31 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4 mt-6">
-            {listings.map((listing) => (
-              <Card key={listing.id} className="p-6 hover:border-primary/50 transition-all">
-                <div className="flex justify-between items-start gap-4">
+            {sortedListings.map((listing) => (
+              <Card key={listing.id} className={`p-6 transition-all ${
+                listing.isPremium 
+                  ? 'bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/40 hover:border-primary/60 shadow-lg' 
+                  : 'hover:border-primary/50'
+              }`}>
+                <div className="flex flex-col md:flex-row gap-6">
+                  {listing.isPremium && listing.images && listing.images.length > 0 && (
+                    <div className="w-full md:w-64 flex-shrink-0">
+                      <div className="relative">
+                        <img 
+                          src={listing.images[0]} 
+                          alt={listing.title}
+                          className="w-full h-48 md:h-full object-cover rounded-lg"
+                        />
+                        {listing.images.length > 1 && (
+                          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <Icon name="Image" size={12} />
+                            <span>+{listing.images.length - 1}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex-1 space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -105,7 +145,25 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    {listing.isPremium && listing.audioGreeting && (
+                      <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg p-3">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => handlePlayAudio(listing.id)}
+                        >
+                          <Icon name={playingAudio === listing.id ? "Pause" : "Play"} size={16} className="text-primary" />
+                        </Button>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Голосовое приветствие</p>
+                          <p className="text-xs text-muted-foreground">Нажмите для прослушивания</p>
+                        </div>
+                        <Icon name="Volume2" size={18} className="text-primary" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
                           <AvatarFallback className="text-xs">{listing.author.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -115,9 +173,10 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                         <span>{listing.createdAt}</span>
                       </div>
                     </div>
+                    </div>
                   </div>
 
-                  <Dialog>
+                  <Dialog className="flex-shrink-0">
                     <DialogTrigger asChild>
                       <Button className="gap-2">
                         <Icon name="MessageCircle" size={16} />
