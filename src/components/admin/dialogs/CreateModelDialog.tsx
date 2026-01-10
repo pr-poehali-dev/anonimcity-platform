@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ interface CreateModelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (model: ModelFormData) => void;
+  editingModel?: ModelFormData & { id: number; listingsCount: number; totalRevenue: number } | null;
 }
 
 interface ModelFormData {
@@ -30,7 +31,7 @@ interface ModelFormData {
 const avatarOptions = ['👩', '👱‍♀️', '👧', '👩‍🦰', '👩‍🦱', '👩‍🦳', '🧕', '👸', '💃', '🙋‍♀️'];
 const cityOptions = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Нижний Новгород', 'Челябинск', 'Самара', 'Омск', 'Ростов-на-Дону'];
 
-export default function CreateModelDialog({ open, onOpenChange, onSubmit }: CreateModelDialogProps) {
+export default function CreateModelDialog({ open, onOpenChange, onSubmit, editingModel }: CreateModelDialogProps) {
   const [formData, setFormData] = useState<ModelFormData>({
     name: '',
     login: '',
@@ -44,6 +45,38 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit }: Crea
     status: 'active',
     verified: false,
   });
+
+  useEffect(() => {
+    if (editingModel) {
+      setFormData({
+        name: editingModel.name,
+        login: editingModel.login,
+        avatar: editingModel.avatar,
+        age: editingModel.age,
+        city: editingModel.city,
+        bio: editingModel.bio,
+        phone: editingModel.phone,
+        telegram: editingModel.telegram,
+        whatsapp: editingModel.whatsapp,
+        status: editingModel.status,
+        verified: editingModel.verified,
+      });
+    } else {
+      setFormData({
+        name: '',
+        login: '',
+        avatar: '👩',
+        age: undefined,
+        city: '',
+        bio: '',
+        phone: '',
+        telegram: '',
+        whatsapp: '',
+        status: 'active',
+        verified: false,
+      });
+    }
+  }, [editingModel, open]);
 
   const generateRandomLogin = () => {
     const prefix = 'anon_';
@@ -98,9 +131,9 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit }: Crea
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Создать новую модель</DialogTitle>
+          <DialogTitle>{editingModel ? 'Редактировать модель' : 'Создать новую модель'}</DialogTitle>
           <DialogDescription>
-            Создайте новый аккаунт модели для размещения объявлений
+            {editingModel ? 'Измените информацию о модели' : 'Создайте новый аккаунт модели для размещения объявлений'}
           </DialogDescription>
         </DialogHeader>
 
@@ -278,8 +311,8 @@ export default function CreateModelDialog({ open, onOpenChange, onSubmit }: Crea
             Отмена
           </Button>
           <Button onClick={handleSubmit}>
-            <Icon name="Plus" size={16} className="mr-2" />
-            Создать модель
+            <Icon name={editingModel ? "Save" : "Plus"} size={16} className="mr-2" />
+            {editingModel ? 'Сохранить изменения' : 'Создать модель'}
           </Button>
         </DialogFooter>
       </DialogContent>

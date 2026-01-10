@@ -9,26 +9,6 @@ import type { Category } from '../AdminDialogs';
 import CreateModelDialog from '../dialogs/CreateModelDialog';
 import { useToast } from '@/hooks/use-toast';
 
-interface AdminContentTabsProps {
-  categories: Category[];
-  openCategoryDialog: (category?: Category) => void;
-  handleDeleteCategory: (id: number) => void;
-  models: Model[];
-  onCreateModel: (model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
-  onDeleteModel: (id: number) => void;
-}
-
-interface Model {
-  id: number;
-  name: string;
-  login: string;
-  status: string;
-  listingsCount: number;
-  totalRevenue: number;
-  avatar: string;
-  verified: boolean;
-}
-
 export interface Model {
   id: number;
   name: string;
@@ -46,25 +26,56 @@ export interface Model {
   whatsapp?: string;
 }
 
+interface AdminContentTabsProps {
+  categories: Category[];
+  openCategoryDialog: (category?: Category) => void;
+  handleDeleteCategory: (id: number) => void;
+  models: Model[];
+  onCreateModel: (model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
+  onUpdateModel: (id: number, model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
+  onDeleteModel: (id: number) => void;
+}
+
 export default function AdminContentTabs({
   categories,
   openCategoryDialog,
   handleDeleteCategory,
   models,
   onCreateModel,
+  onUpdateModel,
   onDeleteModel,
 }: AdminContentTabsProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [createModelOpen, setCreateModelOpen] = useState(false);
+  const [editingModel, setEditingModel] = useState<Model | null>(null);
 
   const handleCreateModel = (modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
-    onCreateModel(modelData);
+    if (editingModel) {
+      onUpdateModel(editingModel.id, modelData);
+      toast({
+        title: "Модель обновлена",
+        description: `Изменения для ${modelData.name} сохранены`,
+      });
+    } else {
+      onCreateModel(modelData);
+      toast({
+        title: "Модель создана",
+        description: `Аккаунт ${modelData.name} успешно создан`,
+      });
+    }
     setCreateModelOpen(false);
-    toast({
-      title: "Модель создана",
-      description: `Аккаунт ${modelData.name} успешно создан`,
-    });
+    setEditingModel(null);
+  };
+
+  const handleOpenCreateDialog = () => {
+    setEditingModel(null);
+    setCreateModelOpen(true);
+  };
+
+  const handleOpenEditDialog = (model: Model) => {
+    setEditingModel(model);
+    setCreateModelOpen(true);
   };
 
   const handleDeleteModelClick = (id: number, name: string) => {
@@ -131,7 +142,7 @@ export default function AdminContentTabs({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Модели на платформе ({models.length})</CardTitle>
-            <Button onClick={() => setCreateModelOpen(true)} className="gap-2">
+            <Button onClick={handleOpenCreateDialog} className="gap-2">
               <Icon name="Plus" size={16} />
               Создать модель
             </Button>
@@ -171,6 +182,13 @@ export default function AdminContentTabs({
                     </Button>
                     <Button 
                       size="sm" 
+                      variant="outline"
+                      onClick={() => handleOpenEditDialog(model)}
+                    >
+                      <Icon name="Edit" size={14} />
+                    </Button>
+                    <Button 
+                      size="sm" 
                       variant="destructive"
                       onClick={() => handleDeleteModelClick(model.id, model.name)}
                     >
@@ -186,8 +204,12 @@ export default function AdminContentTabs({
 
       <CreateModelDialog
         open={createModelOpen}
-        onOpenChange={setCreateModelOpen}
+        onOpenChange={(open) => {
+          setCreateModelOpen(open);
+          if (!open) setEditingModel(null);
+        }}
         onSubmit={handleCreateModel}
+        editingModel={editingModel}
       />
     </>
   );

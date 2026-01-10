@@ -23,6 +23,7 @@ interface AdminTabsProps {
   handleDeleteCategory: (id: number) => void;
   models: Model[];
   onCreateModel: (model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
+  onUpdateModel: (id: number, model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
   onDeleteModel: (id: number) => void;
 }
 
@@ -42,6 +43,7 @@ export default function AdminTabs({
   handleDeleteCategory,
   models,
   onCreateModel,
+  onUpdateModel,
   onDeleteModel,
 }: AdminTabsProps) {
   return (
@@ -89,6 +91,7 @@ export default function AdminTabs({
         handleDeleteCategory={handleDeleteCategory}
         models={models}
         onCreateModel={onCreateModel}
+        onUpdateModel={onUpdateModel}
         onDeleteModel={onDeleteModel}
       />
 

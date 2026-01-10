@@ -150,6 +150,14 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     setModels([...models, newModel]);
   };
 
+  const handleUpdateModel = (id: number, modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
+    setModels(models.map(m => 
+      m.id === id 
+        ? { ...m, ...modelData }
+        : m
+    ));
+  };
+
   const handleDeleteModel = (id: number) => {
     setModels(models.filter(m => m.id !== id));
   };
@@ -222,6 +230,7 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
           handleDeleteCategory={handleDeleteCategory}
           models={models}
           onCreateModel={handleCreateModel}
+          onUpdateModel={handleUpdateModel}
           onDeleteModel={handleDeleteModel}
         />
       </div>
