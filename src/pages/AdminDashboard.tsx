@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminTabs from '@/components/admin/AdminTabs';
 import AdminDialogs, { type Category, type Listing } from '@/components/admin/AdminDialogs';
+import type { Model } from '@/components/admin/tabs/AdminContentTabs';
 
 interface AdminDashboardProps {
   onAdminLogout: () => void;
@@ -43,6 +44,13 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     { id: 2, login: 'anon_m3n8q1', registered: '2024-01-10 13:45', status: 'active' },
     { id: 3, login: 'anon_p9k2m7', registered: '2024-01-10 12:10', status: 'blocked' },
     { id: 4, login: 'anon_q2l8n3', registered: '2024-01-10 11:30', status: 'active' },
+  ]);
+
+  const [models, setModels] = useState<Model[]>([
+    { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true, age: 24, city: 'Москва', bio: 'Профессиональная модель' },
+    { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true, age: 26, city: 'Санкт-Петербург' },
+    { id: 3, name: 'Елена Р.', login: 'anon_p9k2m7', status: 'active', listingsCount: 5, totalRevenue: 67000, avatar: '👧', verified: false, age: 22, city: 'Новосибирск' },
+    { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, age: 28, city: 'Екатеринбург' },
   ]);
 
   const [categoryDialog, setCategoryDialog] = useState(false);
@@ -132,6 +140,20 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     toast({ title: "Объявление удалено", description: `"${listing?.title}" было удалено` });
   };
 
+  const handleCreateModel = (modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
+    const newModel: Model = {
+      ...modelData,
+      id: Date.now(),
+      listingsCount: 0,
+      totalRevenue: 0,
+    };
+    setModels([...models, newModel]);
+  };
+
+  const handleDeleteModel = (id: number) => {
+    setModels(models.filter(m => m.id !== id));
+  };
+
   const openEditListing = (listing: Listing) => {
     setEditingListing(listing);
     setListingDialog(true);
@@ -198,6 +220,9 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
           handleDeleteListing={handleDeleteListing}
           openCategoryDialog={openCategoryDialog}
           handleDeleteCategory={handleDeleteCategory}
+          models={models}
+          onCreateModel={handleCreateModel}
+          onDeleteModel={handleDeleteModel}
         />
       </div>
 

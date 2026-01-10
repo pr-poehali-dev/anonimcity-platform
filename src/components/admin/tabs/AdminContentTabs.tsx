@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
@@ -5,11 +6,16 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Category } from '../AdminDialogs';
+import CreateModelDialog from '../dialogs/CreateModelDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminContentTabsProps {
   categories: Category[];
   openCategoryDialog: (category?: Category) => void;
   handleDeleteCategory: (id: number) => void;
+  models: Model[];
+  onCreateModel: (model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
+  onDeleteModel: (id: number) => void;
 }
 
 interface Model {
@@ -23,19 +29,53 @@ interface Model {
   verified: boolean;
 }
 
-const mockModels: Model[] = [
-  { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true },
-  { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true },
-  { id: 3, name: 'Елена Р.', login: 'anon_p9k2m7', status: 'active', listingsCount: 5, totalRevenue: 67000, avatar: '👧', verified: false },
-  { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true },
-];
+export interface Model {
+  id: number;
+  name: string;
+  login: string;
+  status: string;
+  listingsCount: number;
+  totalRevenue: number;
+  avatar: string;
+  verified: boolean;
+  age?: number;
+  city?: string;
+  bio?: string;
+  phone?: string;
+  telegram?: string;
+  whatsapp?: string;
+}
 
 export default function AdminContentTabs({
   categories,
   openCategoryDialog,
   handleDeleteCategory,
+  models,
+  onCreateModel,
+  onDeleteModel,
 }: AdminContentTabsProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [createModelOpen, setCreateModelOpen] = useState(false);
+
+  const handleCreateModel = (modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
+    onCreateModel(modelData);
+    setCreateModelOpen(false);
+    toast({
+      title: "Модель создана",
+      description: `Аккаунт ${modelData.name} успешно создан`,
+    });
+  };
+
+  const handleDeleteModelClick = (id: number, name: string) => {
+    if (confirm(`Удалить модель ${name}? Все объявления этой модели также будут удалены.`)) {
+      onDeleteModel(id);
+      toast({
+        title: "Модель удалена",
+        description: `Аккаунт удален из системы`,
+      });
+    }
+  };
 
   return (
     <>
@@ -89,12 +129,16 @@ export default function AdminContentTabs({
 
       <TabsContent value="models" className="space-y-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Модели на платформе ({mockModels.length})</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Модели на платформе ({models.length})</CardTitle>
+            <Button onClick={() => setCreateModelOpen(true)} className="gap-2">
+              <Icon name="Plus" size={16} />
+              Создать модель
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {mockModels.map((model) => (
+              {models.map((model) => (
                 <div key={model.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl">
@@ -125,8 +169,12 @@ export default function AdminContentTabs({
                     >
                       Профиль
                     </Button>
-                    <Button size="sm" variant="outline">
-                      <Icon name="MoreVertical" size={14} />
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDeleteModelClick(model.id, model.name)}
+                    >
+                      <Icon name="Trash2" size={14} />
                     </Button>
                   </div>
                 </div>
@@ -135,6 +183,12 @@ export default function AdminContentTabs({
           </CardContent>
         </Card>
       </TabsContent>
+
+      <CreateModelDialog
+        open={createModelOpen}
+        onOpenChange={setCreateModelOpen}
+        onSubmit={handleCreateModel}
+      />
     </>
   );
 }

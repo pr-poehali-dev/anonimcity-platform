@@ -5,6 +5,7 @@ import AdminContentTabs from './tabs/AdminContentTabs';
 import AdminUsersTab from './tabs/AdminUsersTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import type { Category, Listing } from './AdminDialogs';
+import type { Model } from './tabs/AdminContentTabs';
 
 interface AdminTabsProps {
   selectedTab: string;
@@ -20,6 +21,9 @@ interface AdminTabsProps {
   handleDeleteListing: (id: number) => void;
   openCategoryDialog: (category?: Category) => void;
   handleDeleteCategory: (id: number) => void;
+  models: Model[];
+  onCreateModel: (model: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => void;
+  onDeleteModel: (id: number) => void;
 }
 
 export default function AdminTabs({
@@ -36,6 +40,9 @@ export default function AdminTabs({
   handleDeleteListing,
   openCategoryDialog,
   handleDeleteCategory,
+  models,
+  onCreateModel,
+  onDeleteModel,
 }: AdminTabsProps) {
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
@@ -80,6 +87,9 @@ export default function AdminTabs({
         categories={categories}
         openCategoryDialog={openCategoryDialog}
         handleDeleteCategory={handleDeleteCategory}
+        models={models}
+        onCreateModel={onCreateModel}
+        onDeleteModel={onDeleteModel}
       />
 
       <AdminUsersTab recentUsers={recentUsers} />
