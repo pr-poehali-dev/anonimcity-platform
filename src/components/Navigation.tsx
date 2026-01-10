@@ -51,7 +51,7 @@ export default function Navigation({
                 <Icon name="Shield" size={20} className="text-background" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Anonimcity
+                Anonim.city
               </span>
             </Link>
 
