@@ -11,6 +11,7 @@ import Listings from "./pages/Listings";
 import CreateListing from "./pages/CreateListing";
 import MyListings from "./pages/MyListings";
 import Messages from "./pages/Messages";
+import Virt from "./pages/Virt";
 import Files from "./pages/Files";
 import Profile from "./pages/Profile";
 import Wallet from "./pages/Wallet";
@@ -132,6 +133,9 @@ function AppContent() {
         } />
         <Route path="/messages" element={
           isAuthenticated ? <Messages generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
+        } />
+        <Route path="/virt" element={
+          isAuthenticated ? <Virt generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
         } />
         <Route path="/files" element={
           isAuthenticated ? <Files generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
