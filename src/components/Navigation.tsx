@@ -8,15 +8,13 @@ import Icon from '@/components/ui/icon';
 
 interface NavigationProps {
   isAuthenticated: boolean;
-  isAdmin?: boolean;
   onLogin: () => void;
   onExistingLogin: (login: string, password: string) => void;
   onLogout: () => void;
 }
 
 export default function Navigation({ 
-  isAuthenticated,
-  isAdmin = false,
+  isAuthenticated, 
   onLogin,
   onExistingLogin, 
   onLogout 
@@ -79,13 +77,6 @@ export default function Navigation({
             <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                {isAdmin && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/admin">
-                      <Icon name="Shield" size={18} />
-                    </Link>
-                  </Button>
-                )}
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/settings">
                     <Icon name="Settings" size={18} />
