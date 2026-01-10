@@ -53,6 +53,17 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, age: 28, city: 'Екатеринбург' },
   ]);
 
+  const [messages] = useState([
+    { id: 1, modelId: 1, status: 'new' },
+    { id: 2, modelId: 1, status: 'read' },
+    { id: 3, modelId: 2, status: 'replied' },
+    { id: 4, modelId: 4, status: 'new' },
+    { id: 5, modelId: 1, status: 'replied' },
+  ]);
+
+  const adminModelIds = models.map(m => m.id);
+  const newMessagesCount = messages.filter(m => adminModelIds.includes(m.modelId) && m.status === 'new').length;
+
   const [categoryDialog, setCategoryDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newCategory, setNewCategory] = useState({ name: '', description: '', icon: 'Tag' });
@@ -198,10 +209,26 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
                 <p className="text-xs text-muted-foreground">Anonimcity Management</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
-              <Icon name="LogOut" size={16} />
-              Выйти
-            </Button>
+            <div className="flex items-center gap-3">
+              {newMessagesCount > 0 && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={() => setSelectedTab('messages')} 
+                  className="gap-2 relative"
+                >
+                  <Icon name="Mail" size={16} />
+                  <span>Новые сообщения</span>
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {newMessagesCount}
+                  </span>
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+                <Icon name="LogOut" size={16} />
+                Выйти
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
