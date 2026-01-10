@@ -3,6 +3,7 @@ const API_BASE = {
   messages: 'https://functions.poehali.dev/0ec69c03-40fd-4089-854e-7e6a575f4c19',
   listings: 'https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89',
   support: 'https://functions.poehali.dev/5ee71053-8c99-45ac-ae98-99ccdb3b681d',
+  admin: 'https://functions.poehali.dev/804dda5f-70e7-45e2-9dfb-e051e0f70c47',
 };
 
 export async function registerUser(login: string, password: string) {
@@ -224,6 +225,280 @@ export async function createSupportTicket(userId: number, subject: string, messa
         'X-User-Id': String(userId),
       },
       body: JSON.stringify({ subject, message }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+// Admin API functions
+export async function getCategories() {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=categories`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get categories error:', error);
+    return [];
+  }
+}
+
+export async function createCategory(name: string, icon: string, color: string) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, icon, color }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function updateCategory(id: number, name: string, icon: string, color: string) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=categories`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, icon, color }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function deleteCategory(id: number) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=categories&id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Delete category error:', error);
+    return false;
+  }
+}
+
+export async function getModels() {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=models`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch models');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get models error:', error);
+    return [];
+  }
+}
+
+export async function createModel(model: {
+  name: string;
+  username?: string;
+  age?: number;
+  location?: string;
+  rating?: number;
+  reviews?: number;
+  image_url?: string;
+  status?: string;
+}) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=models`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(model),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function updateModel(id: number, model: any) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=models`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...model }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function deleteModel(id: number) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=models&id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Delete model error:', error);
+    return false;
+  }
+}
+
+export async function getApplications() {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=applications`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch applications');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get applications error:', error);
+    return [];
+  }
+}
+
+export async function createApplication(application: {
+  name: string;
+  age?: number;
+  city?: string;
+  telegram?: string;
+  experience?: string;
+}) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=applications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(application),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function updateApplicationStatus(id: number, status: string) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=applications`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function deleteApplication(id: number) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=applications&id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Delete application error:', error);
+    return false;
+  }
+}
+
+export async function getAnonymousLetters(recipientLogin?: string) {
+  try {
+    const url = recipientLogin 
+      ? `${API_BASE.admin}?resource=letters&recipient=${recipientLogin}`
+      : `${API_BASE.admin}?resource=letters`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch letters');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get letters error:', error);
+    return [];
+  }
+}
+
+export async function sendAnonymousLetter(recipientLogin: string, message: string, senderLogin?: string) {
+  try {
+    const response = await fetch(`${API_BASE.admin}?resource=letters`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender_login: senderLogin, recipient_login: recipientLogin, message }),
     });
     
     const data = await response.json();

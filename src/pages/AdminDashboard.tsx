@@ -8,6 +8,7 @@ import AdminTabs from '@/components/admin/AdminTabs';
 import AdminDialogs, { type Category, type Listing } from '@/components/admin/AdminDialogs';
 import CreateListingDialog from '@/components/admin/dialogs/CreateListingDialog';
 import type { Model } from '@/components/admin/tabs/AdminContentTabs';
+import { getCategories, createCategory, updateCategory, deleteCategory, getModels, createModel, updateModel, deleteModel, getListings } from '@/lib/api';
 
 interface AdminDashboardProps {
   onAdminLogout: () => void;
@@ -26,19 +27,11 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     reportedContent: 7,
   });
 
-  const [categories, setCategories] = useState<Category[]>([
-    { id: 1, name: 'Эскорт услуги', description: 'Сопровождение на мероприятия', icon: 'Users', listingsCount: 142 },
-    { id: 2, name: 'Виртуальное общение', description: 'Онлайн знакомства и общение', icon: 'MessageCircle', listingsCount: 89 },
-    { id: 3, name: 'Массаж', description: 'Профессиональный массаж', icon: 'Heart', listingsCount: 56 },
-    { id: 4, name: 'Фото/Видео услуги', description: 'Индивидуальный контент', icon: 'Camera', listingsCount: 55 },
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
-  const [listings, setListings] = useState<Listing[]>([
-    { id: 1, title: 'Премиум эскорт услуги', description: 'VIP сопровождение', author: 'anon_x7k2p9', created: '2024-01-10 14:00', type: 'premium', category: 'Эскорт услуги', price: 15000, status: 'pending', createdByAdmin: true },
-    { id: 2, title: 'Виртуальное общение', description: 'Приятное общение онлайн', author: 'anon_m3n8q1', created: '2024-01-10 13:30', type: 'regular', category: 'Виртуальное общение', price: 1500, status: 'active' },
-    { id: 3, title: 'Выезд по городу', description: 'Сопровождение по Москве', author: 'anon_q2l8n3', created: '2024-01-10 12:45', type: 'premium', category: 'Эскорт услуги', price: 20000, status: 'pending', createdByAdmin: true },
-    { id: 4, title: 'Расслабляющий массаж', description: 'Профессиональный массаж', author: 'anon_k3m7n2', created: '2024-01-10 11:20', type: 'regular', category: 'Массаж', price: 5000, status: 'active' },
-  ]);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [isLoadingListings, setIsLoadingListings] = useState(true);
 
   const [recentUsers] = useState([
     { id: 1, login: 'anon_x7k2p9', registered: '2024-01-10 14:23', status: 'active' },
@@ -47,17 +40,61 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     { id: 4, login: 'anon_q2l8n3', registered: '2024-01-10 11:30', status: 'active' },
   ]);
 
-  const [models, setModels] = useState<Model[]>([
-    { id: 1, name: 'Анна М.', login: 'anon_x7k2p9', status: 'verified', listingsCount: 12, totalRevenue: 145000, avatar: '👩', verified: true, gender: 'female', age: 24, city: 'Москва', bio: 'Профессиональная модель', createdByAdmin: true },
-    { id: 2, name: 'Мария К.', login: 'anon_m3n8q1', status: 'verified', listingsCount: 8, totalRevenue: 98000, avatar: '👱‍♀️', verified: true, gender: 'female', age: 26, city: 'Санкт-Петербург', createdByAdmin: true },
-    { id: 3, name: 'Елена Р.', login: 'anon_p9k2m7', status: 'active', listingsCount: 5, totalRevenue: 67000, avatar: '👧', verified: false, gender: 'female', age: 22, city: 'Новосибирск' },
-    { id: 4, name: 'Виктория С.', login: 'anon_q2l8n3', status: 'verified', listingsCount: 15, totalRevenue: 189000, avatar: '👩‍🦰', verified: true, gender: 'female', age: 28, city: 'Екатеринбург', createdByAdmin: true },
-  ]);
+  const [models, setModels] = useState<Model[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(true);
 
   useEffect(() => {
-    const adminModels = models.filter(m => m.createdByAdmin);
-    localStorage.setItem('admin_models', JSON.stringify(adminModels));
+    loadCategories();
+    loadModels();
+    loadListingsData();
   }, []);
+
+  const loadCategories = async () => {
+    setIsLoadingCategories(true);
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  const loadModels = async () => {
+    setIsLoadingModels(true);
+    try {
+      const data = await getModels();
+      setModels(data);
+    } catch (error) {
+      console.error('Failed to load models:', error);
+    } finally {
+      setIsLoadingModels(false);
+    }
+  };
+
+  const loadListingsData = async () => {
+    setIsLoadingListings(true);
+    try {
+      const data = await getListings();
+      setListings(data.map((l: any) => ({
+        id: l.id,
+        title: l.title,
+        description: l.description,
+        author: `user_${l.user_id}`,
+        created: l.created_at,
+        type: 'regular',
+        category: l.category,
+        price: l.price,
+        status: l.status || 'active',
+        createdByAdmin: false
+      })));
+    } catch (error) {
+      console.error('Failed to load listings:', error);
+    } finally {
+      setIsLoadingListings(false);
+    }
+  };
 
   const [messages] = useState([
     { id: 1, modelId: 1, status: 'new' },
@@ -132,45 +169,50 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     });
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!newCategory.name) {
       toast({ title: "Ошибка", description: "Введите название категории", variant: "destructive" });
       return;
     }
 
-    const category: Category = {
-      id: Date.now(),
-      name: newCategory.name,
-      description: newCategory.description,
-      icon: newCategory.icon,
-      listingsCount: 0,
-    };
-
-    setCategories([...categories, category]);
-    setNewCategory({ name: '', description: '', icon: 'Tag' });
-    setCategoryDialog(false);
-    toast({ title: "Категория добавлена", description: `"${category.name}" успешно создана` });
+    const result = await createCategory(newCategory.name, newCategory.icon, '');
+    
+    if (result.success) {
+      await loadCategories();
+      setNewCategory({ name: '', description: '', icon: 'Tag' });
+      setCategoryDialog(false);
+      toast({ title: "Категория добавлена", description: `"${newCategory.name}" успешно создана` });
+    } else {
+      toast({ title: "Ошибка", description: result.error, variant: "destructive" });
+    }
   };
 
-  const handleEditCategory = () => {
+  const handleEditCategory = async () => {
     if (!editingCategory || !newCategory.name) return;
 
-    setCategories(categories.map(cat => 
-      cat.id === editingCategory.id 
-        ? { ...cat, name: newCategory.name, description: newCategory.description, icon: newCategory.icon }
-        : cat
-    ));
+    const result = await updateCategory(editingCategory.id, newCategory.name, newCategory.icon, '');
     
-    setEditingCategory(null);
-    setNewCategory({ name: '', description: '', icon: 'Tag' });
-    setCategoryDialog(false);
-    toast({ title: "Категория обновлена", description: "Изменения сохранены" });
+    if (result.success) {
+      await loadCategories();
+      setEditingCategory(null);
+      setNewCategory({ name: '', description: '', icon: 'Tag' });
+      setCategoryDialog(false);
+      toast({ title: "Категория обновлена", description: "Изменения сохранены" });
+    } else {
+      toast({ title: "Ошибка", description: result.error, variant: "destructive" });
+    }
   };
 
-  const handleDeleteCategory = (id: number) => {
+  const handleDeleteCategory = async (id: number) => {
     const category = categories.find(c => c.id === id);
-    setCategories(categories.filter(cat => cat.id !== id));
-    toast({ title: "Категория удалена", description: `"${category?.name}" была удалена` });
+    const success = await deleteCategory(id);
+    
+    if (success) {
+      await loadCategories();
+      toast({ title: "Категория удалена", description: `"${category?.name}" была удалена` });
+    } else {
+      toast({ title: "Ошибка", description: "Не удалось удалить категорию", variant: "destructive" });
+    }
   };
 
   const openCategoryDialog = (category?: Category) => {
