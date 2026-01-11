@@ -128,9 +128,7 @@ export default function Charity({ generatedCredentials }: CharityProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">Добровольное пожертвование</CardTitle>
-              <CardDescription>
-                Сделайте разовое пожертвование на общий благотворительный фонд
-              </CardDescription>
+              <CardDescription>Сделайте разовое пожертвование на спец счет предназначенный для фонда Подари Жизнь</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-3 bg-muted rounded-lg">
