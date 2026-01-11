@@ -121,18 +121,13 @@ export default function Charity({ generatedCredentials }: CharityProps) {
             <Icon name="Heart" size={32} className="text-primary" />
           </div>
           <h1 className="text-4xl font-bold">Благотворительность</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Поддержите важные проекты и помогите тем, кто нуждается в вашей помощи
-          </p>
+          <p className="text-muted-foreground max-w-2xl mx-auto">Мы заработали своё. Данная платформа сделана  для перераспределения Энергии из черной в белую.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon name="HandHeart" size={24} />
-                Быстрое пожертвование
-              </CardTitle>
+              <CardTitle className="flex items-center gap-2">Добровольное пожертвование</CardTitle>
               <CardDescription>
                 Сделайте разовое пожертвование на общий благотворительный фонд
               </CardDescription>
@@ -205,10 +200,8 @@ export default function Charity({ generatedCredentials }: CharityProps) {
                     <Icon name="Shield" size={16} className="text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium mb-1">Безопасность</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Все транзакции защищены и анонимны
-                    </p>
+                    <h4 className="font-medium mb-1">Финансы</h4>
+                    <p className="text-sm text-muted-foreground">25% от прибыли переводиться на спец счет </p>
                   </div>
                 </div>
 
@@ -217,10 +210,8 @@ export default function Charity({ generatedCredentials }: CharityProps) {
                     <Icon name="TrendingUp" size={16} className="text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium mb-1">Прозрачность</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Отслеживайте куда идут средства
-                    </p>
+                    <h4 className="font-medium mb-1">Добровольное пожертвование</h4>
+                    <p className="text-sm text-muted-foreground">100% средств переведется на спец счет</p>
                   </div>
                 </div>
 
@@ -229,10 +220,8 @@ export default function Charity({ generatedCredentials }: CharityProps) {
                     <Icon name="Users" size={16} className="text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium mb-1">Сообщество</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Присоединяйтесь к тысячам благотворителей
-                    </p>
+                    <h4 className="font-medium mb-1">Благотворительный фонд Подари Жизнь</h4>
+                    <p className="text-sm text-muted-foreground">Помощь детям и молодым взрослым до 25 лет с онкологическими и иными тяжелыми заболеваниями</p>
                   </div>
                 </div>
               </div>
