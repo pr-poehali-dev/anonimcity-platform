@@ -37,7 +37,7 @@ export default function Navigation({
     { icon: 'Video', label: 'Вирт', path: '/virt' },
     { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
     { icon: 'Wallet', label: 'Кошелек', path: '/wallet' },
-    { icon: 'Heart', label: 'Благотворительность', path: '/charity' }
+    { icon: 'Heart', label: 'Помощь', path: '/charity' }
   ];
 
   return (

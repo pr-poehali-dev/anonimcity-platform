@@ -6,7 +6,7 @@ const API_BASE = {
   admin: 'https://functions.poehali.dev/804dda5f-70e7-45e2-9dfb-e051e0f70c47',
   wallet: 'https://functions.poehali.dev/5755cd8a-ea9e-49d5-a18f-8956edb4b2a7',
   cryptoPayment: 'https://functions.poehali.dev/2441db33-301a-4fc0-8562-c375664cb244',
-  charity: 'https://functions.poehali.dev/charity',
+  charity: 'https://functions.poehali.dev/23ad40d3-0001-4c63-9a47-89ce2f0e701f',
 };
 
 export async function registerUser(login: string, password: string) {
