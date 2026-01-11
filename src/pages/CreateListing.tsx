@@ -36,8 +36,10 @@ export default function CreateListing({ generatedCredentials }: CreateListingPro
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [showCryptoPayment, setShowCryptoPayment] = useState(false);
 
   const handleServiceToggle = (service: Service) => {
@@ -115,8 +117,33 @@ export default function CreateListing({ generatedCredentials }: CreateListingPro
   };
 
   const removeAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     setAudioBlob(null);
     setRecordingTime(0);
+    setIsPlaying(false);
+  };
+
+  const playAudio = () => {
+    if (!audioBlob) return;
+
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } else {
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      audio.onended = () => setIsPlaying(false);
+      audio.play();
+      audioRef.current = audio;
+      setIsPlaying(true);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -344,7 +371,14 @@ export default function CreateListing({ generatedCredentials }: CreateListingPro
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 p-3 bg-background rounded-lg border">
-                        <Icon name="CheckCircle" size={20} className="text-green-500" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={playAudio}
+                        >
+                          <Icon name={isPlaying ? "Pause" : "Play"} size={16} className="text-primary" />
+                        </Button>
                         <div className="flex-1">
                           <p className="text-sm font-medium">Аудио записано</p>
                           <p className="text-xs text-muted-foreground">{recordingTime} секунд</p>
