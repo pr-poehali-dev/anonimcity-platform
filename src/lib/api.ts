@@ -6,6 +6,7 @@ const API_BASE = {
   admin: 'https://functions.poehali.dev/804dda5f-70e7-45e2-9dfb-e051e0f70c47',
   wallet: 'https://functions.poehali.dev/5755cd8a-ea9e-49d5-a18f-8956edb4b2a7',
   cryptoPayment: 'https://functions.poehali.dev/2441db33-301a-4fc0-8562-c375664cb244',
+  charity: 'https://functions.poehali.dev/charity',
 };
 
 export async function registerUser(login: string, password: string) {
@@ -705,6 +706,78 @@ export async function createStaking(userId: number, amountCity: number, periodMo
     return { success: true, data };
   } catch (error) {
     return { success: false, error: String(error) };
+  }
+}
+
+// Charity API functions
+export async function makeDonation(
+  userId: number,
+  amount: number,
+  projectId: string | null,
+  message?: string
+) {
+  try {
+    const response = await fetch(`${API_BASE.charity}?action=donate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        amount,
+        project_id: projectId,
+        message,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function getCharityProjects() {
+  try {
+    const response = await fetch(`${API_BASE.charity}?action=projects`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch charity projects');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get charity projects error:', error);
+    return [];
+  }
+}
+
+export async function getCharityDonations(userId: number) {
+  try {
+    const response = await fetch(`${API_BASE.charity}?action=my_donations`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch donations');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get donations error:', error);
+    return [];
   }
 }
 

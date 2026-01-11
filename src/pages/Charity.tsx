@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { makeDonation, getCharityProjects, getWalletBalance } from '@/lib/api';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 interface CharityProject {
   id: string;
@@ -31,10 +33,28 @@ export default function Charity({ generatedCredentials }: CharityProps) {
   const [donationAmount, setDonationAmount] = useState('');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [customMessage, setCustomMessage] = useState('');
+  const [charityProjects, setCharityProjects] = useState<CharityProject[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
-  const charityProjects: CharityProject[] = [];
+  useEffect(() => {
+    loadData();
+  }, [generatedCredentials]);
 
-  const handleDonation = (projectId: string) => {
+  const loadData = async () => {
+    if (!generatedCredentials?.user_id) return;
+
+    const [projects, balance] = await Promise.all([
+      getCharityProjects(),
+      getWalletBalance(generatedCredentials.user_id)
+    ]);
+
+    setCharityProjects(projects);
+    setWalletBalance(balance.balance_rub || 0);
+  };
+
+  const handleDonation = async (projectId: string | null) => {
     if (!donationAmount || parseFloat(donationAmount) <= 0) {
       toast({
         title: "Ошибка",
@@ -44,14 +64,53 @@ export default function Charity({ generatedCredentials }: CharityProps) {
       return;
     }
 
-    toast({
-      title: "Спасибо за поддержку!",
-      description: `Ваше пожертвование ${donationAmount} ₽ принято`
-    });
+    const amount = parseFloat(donationAmount);
 
-    setDonationAmount('');
-    setCustomMessage('');
-    setSelectedProject(null);
+    if (amount > walletBalance) {
+      toast({
+        title: "Недостаточно средств",
+        description: "Пополните кошелек для совершения пожертвования",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDonation = async () => {
+    if (!generatedCredentials?.user_id) return;
+
+    setIsLoading(true);
+    const amount = parseFloat(donationAmount);
+
+    const result = await makeDonation(
+      generatedCredentials.user_id,
+      amount,
+      selectedProject,
+      customMessage
+    );
+
+    setIsLoading(false);
+    setConfirmDialogOpen(false);
+
+    if (result.success) {
+      toast({
+        title: "Спасибо за поддержку! ❤️",
+        description: `Ваше пожертвование ${amount} ₽ принято`
+      });
+
+      setDonationAmount('');
+      setCustomMessage('');
+      setSelectedProject(null);
+      loadData();
+    } else {
+      toast({
+        title: "Ошибка",
+        description: result.error || "Не удалось совершить пожертвование",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -79,6 +138,13 @@ export default function Charity({ generatedCredentials }: CharityProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Баланс кошелька:</span>
+                  <span className="font-semibold">{walletBalance.toLocaleString()} ₽</span>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="quick-amount">Сумма пожертвования (₽)</Label>
                 <Input
@@ -116,11 +182,11 @@ export default function Charity({ generatedCredentials }: CharityProps) {
 
               <Button
                 className="w-full"
-                onClick={() => handleDonation('general')}
-                disabled={!donationAmount}
+                onClick={() => handleDonation(null)}
+                disabled={!donationAmount || isLoading}
               >
                 <Icon name="Heart" size={16} className="mr-2" />
-                Отправить пожертвование
+                {isLoading ? 'Обработка...' : 'Отправить пожертвование'}
               </Button>
             </CardContent>
           </Card>
@@ -252,6 +318,53 @@ export default function Charity({ generatedCredentials }: CharityProps) {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Подтверждение пожертвования</DialogTitle>
+            <DialogDescription>
+              Вы собираетесь сделать пожертвование. Пожалуйста, проверьте детали:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+              <span className="text-muted-foreground">Сумма:</span>
+              <span className="text-lg font-bold">{donationAmount} ₽</span>
+            </div>
+
+            {customMessage && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Сообщение:</p>
+                <p className="text-sm">{customMessage}</p>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Icon name="Info" size={16} />
+              <span>Средства будут списаны с вашего кошелька</span>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialogOpen(false)}
+              disabled={isLoading}
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={confirmDonation}
+              disabled={isLoading}
+            >
+              <Icon name="Heart" size={16} className="mr-2" />
+              {isLoading ? 'Обработка...' : 'Подтвердить'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
