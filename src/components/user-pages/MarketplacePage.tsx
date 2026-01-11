@@ -11,7 +11,7 @@ import MarketplaceFilters from './marketplace/MarketplaceFilters';
 import MarketplaceItemCard, { type MediaItem } from './marketplace/MarketplaceItemCard';
 
 type ContentType = 'video' | 'photo' | 'audio';
-type Genre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание';
+type Genre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание' | 'Госпожа' | 'Унижение' | 'Подглядывание' | 'Скрытая камера' | 'Зоо';
 
 interface MarketplacePageProps {
   generatedCredentials: { login: string; password: string; user_id?: number } | null;
