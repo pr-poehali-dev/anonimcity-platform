@@ -38,7 +38,7 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
 
   return (
     <Card key={`${model.id}-${serviceType}`} className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-6xl relative">
+      <div className="aspect-[3/4] bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-6xl relative">
         {model.avatar}
         <div className="absolute top-3 right-3">
           <Badge className={model.status === 'online' ? 'bg-green-500 gap-1' : ''} variant={model.status === 'online' ? 'default' : 'secondary'}>
