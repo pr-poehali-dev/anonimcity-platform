@@ -121,7 +121,7 @@ export default function Charity({ generatedCredentials }: CharityProps) {
             <Icon name="Heart" size={32} className="text-primary" />
           </div>
           <h1 className="text-4xl font-bold">Благотворительность</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">Мы заработали своё. Данная платформа сделана  для перераспределения Энергии из черной в белую.</p>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-xs">Мы заработали своё. Данная платформа сделана  для перераспределения Энергии из черной в белую.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
