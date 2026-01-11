@@ -87,69 +87,15 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
             <Icon name="Bitcoin" size={16} className="text-primary" />
             <span className="font-bold text-lg">{price} ₽/мин</span>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2" disabled={model.status !== 'online'}>
-                <Icon name={getServiceIcon() as any} size={14} />
-                {getServiceLabel()}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {serviceType === 'video' ? 'Видеозвонок' : serviceType === 'audio' ? 'Аудиозвонок' : 'Переписка'} с {model.name}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 border rounded-lg">
-                  <Avatar className="w-16 h-16">
-                    <AvatarFallback className="text-3xl">{model.avatar}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{model.name}, {model.age}</h3>
-                    <p className="text-sm text-muted-foreground">{model.city}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Icon name="Star" size={12} className="text-yellow-500" />
-                      <span className="text-sm font-medium">{model.rating}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Стоимость:</span>
-                    <span className="font-medium">{price} ₽/мин</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Минимум:</span>
-                    <span className="font-medium">10 минут</span>
-                  </div>
-                  <div className="flex justify-between text-sm pt-2 border-t">
-                    <span className="font-medium">Итого:</span>
-                    <span className="font-bold text-lg">{price * 10} ₽</span>
-                  </div>
-                </div>
-
-                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Icon name="Info" size={16} className="text-blue-500 mt-0.5" />
-                    <p className="text-sm text-muted-foreground">
-                      {serviceType === 'video' 
-                        ? 'Видеозвонок будет доступен в течение оплаченного времени.' 
-                        : serviceType === 'audio' 
-                        ? 'Аудиозвонок будет доступен в течение оплаченного времени.'
-                        : 'Переписка будет доступна в течение оплаченного времени. Можно отправлять текстовые сообщения и голосовые.'}
-                    </p>
-                  </div>
-                </div>
-
-                <Button className="w-full gap-2">
-                  <Icon name="CreditCard" size={16} />
-                  Оплатить и начать
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            size="sm" 
+            className="gap-2" 
+            disabled={model.status !== 'online'}
+            onClick={() => window.location.href = '/messages'}
+          >
+            <Icon name="MessageCircle" size={14} />
+            Написать
+          </Button>
         </div>
       </div>
     </Card>
