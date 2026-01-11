@@ -30,7 +30,7 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
     if (serviceType === 'video') return 'Видеозвонок';
     if (serviceType === 'audio') return 'Аудиозвонок';
     if (serviceType === 'chat') return 'Написать';
-    return 'Позвонить';
+    return 'Написать';
   };
 
   const price = getPrice();
@@ -90,14 +90,14 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-2" disabled={model.status !== 'online'}>
-                <Icon name="MessageCircle" size={14} />
-                Написать
+                <Icon name={getServiceIcon() as any} size={14} />
+                {getServiceLabel()}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  Переписка с {model.name}
+                  {serviceType === 'video' ? 'Видеозвонок' : serviceType === 'audio' ? 'Аудиозвонок' : 'Переписка'} с {model.name}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
@@ -134,7 +134,11 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
                   <div className="flex items-start gap-2">
                     <Icon name="Info" size={16} className="text-blue-500 mt-0.5" />
                     <p className="text-sm text-muted-foreground">
-                      Переписка будет доступна в течение оплаченного времени. Можно отправлять текстовые сообщения и голосовые.
+                      {serviceType === 'video' 
+                        ? 'Видеозвонок будет доступен в течение оплаченного времени.' 
+                        : serviceType === 'audio' 
+                        ? 'Аудиозвонок будет доступен в течение оплаченного времени.'
+                        : 'Переписка будет доступна в течение оплаченного времени. Можно отправлять текстовые сообщения и голосовые.'}
                     </p>
                   </div>
                 </div>
