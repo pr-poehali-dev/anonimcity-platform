@@ -198,6 +198,28 @@ export async function updateListing(userId: number, listingId: number, updates: 
   }
 }
 
+export async function deleteListing(userId: number, listingId: number) {
+  try {
+    const response = await fetch(`${API_BASE.listings}?id=${listingId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
 export async function getSupportTickets(userId: number) {
   try {
     const response = await fetch(API_BASE.support, {

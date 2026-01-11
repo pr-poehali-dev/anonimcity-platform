@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useState, useEffect } from 'react';
-import { getListings } from '@/lib/api';
+import { getListings, deleteListing } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface MyListingsPageProps {
   generatedCredentials: { login: string; password: string; user_id?: number } | null;
@@ -11,6 +12,7 @@ interface MyListingsPageProps {
 export default function MyListingsPage({ generatedCredentials }: MyListingsPageProps) {
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (generatedCredentials?.user_id) {
@@ -29,6 +31,36 @@ export default function MyListingsPage({ generatedCredentials }: MyListingsPageP
       console.error('Failed to load listings:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (listingId: number) => {
+    if (!generatedCredentials?.user_id) return;
+    
+    if (!confirm('Вы уверены, что хотите удалить это объявление?')) return;
+    
+    try {
+      const result = await deleteListing(generatedCredentials.user_id, listingId);
+      
+      if (result.success) {
+        toast({
+          title: 'Успешно',
+          description: 'Объявление удалено',
+        });
+        loadListings();
+      } else {
+        toast({
+          title: 'Ошибка',
+          description: result.error || 'Не удалось удалить объявление',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Произошла ошибка при удалении',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -94,7 +126,12 @@ export default function MyListingsPage({ generatedCredentials }: MyListingsPageP
                     <Button variant="outline" size="sm" className="flex-1">
                       <Icon name="Eye" size={14} />
                     </Button>
-                    <Button variant="destructive" size="sm" className="flex-1">
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleDelete(listing.id)}
+                    >
                       <Icon name="Trash2" size={14} />
                     </Button>
                   </div>

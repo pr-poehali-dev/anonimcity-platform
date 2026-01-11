@@ -199,6 +199,40 @@ def handler(event: dict, context) -> dict:
                 'body': json.dumps({'success': True})
             }
         
+        elif method == 'DELETE':
+            headers = event.get('headers', {})
+            user_id = headers.get('x-user-id') or headers.get('X-User-Id')
+            
+            if not user_id:
+                return {
+                    'statusCode': 401,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Unauthorized'})
+                }
+            
+            params = event.get('queryStringParameters') or {}
+            listing_id = params.get('id')
+            
+            if not listing_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'listing id required'})
+                }
+            
+            cur.execute(f"""
+                DELETE FROM {schema}.listings 
+                WHERE id = %s AND user_id = %s
+            """, (int(listing_id), int(user_id)))
+            
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': True})
+            }
+        
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
