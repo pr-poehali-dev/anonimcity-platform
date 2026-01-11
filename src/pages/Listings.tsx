@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import ListingsPage from '@/components/ListingsPage';
+import { getListings } from '@/lib/api';
 
 type Service = 'Секс Выезд' | 'Секс Апартаменты' | 'Ужин' | 'Вечеринка' | 'Виртуальный секс';
 type ListingType = 'Индивидуалка' | 'Агенство';
@@ -19,59 +21,32 @@ interface Listing {
   age?: number;
 }
 
-const mockListings: Listing[] = [
-  {
-    id: 1,
-    title: 'Элитная встреча в центре города',
-    description: 'Высокий уровень сервиса, конфиденциальность гарантирована',
-    isPremium: true,
-    services: ['Секс Апартаменты', 'Ужин'],
-    type: 'Индивидуалка',
-    price: '15000 ₽/час',
-    images: ['https://placehold.co/400x300/6366f1/ffffff?text=Photo+1', 'https://placehold.co/400x300/8b5cf6/ffffff?text=Photo+2'],
-    audioGreeting: 'audio_greeting_1.mp3',
-    author: 'user_8347',
-    createdAt: '2 часа назад',
-    city: 'Москва',
-    age: 24
-  },
-  {
-    id: 2,
-    title: 'Ищу компанию на вечер',
-    description: 'Приятное общение, анонимность',
-    isPremium: false,
-    author: 'user_2891',
-    createdAt: '5 часов назад',
-    city: 'Санкт-Петербург',
-    age: 28
-  },
-  {
-    id: 3,
-    title: 'Премиум эскорт-услуги',
-    description: 'VIP сопровождение на мероприятия, деловые встречи',
-    isPremium: true,
-    services: ['Ужин', 'Вечеринка'],
-    type: 'Агенство',
-    price: '25000 ₽',
-    images: ['https://placehold.co/400x300/ec4899/ffffff?text=Photo+1', 'https://placehold.co/400x300/f43f5e/ffffff?text=Photo+2', 'https://placehold.co/400x300/ef4444/ffffff?text=Photo+3'],
-    audioGreeting: 'audio_greeting_2.mp3',
-    author: 'agency_elite',
-    createdAt: '1 день назад',
-    city: 'Москва',
-    age: 22
-  },
-  {
-    id: 4,
-    title: 'Приятное знакомство',
-    description: 'Ищу интересное общение',
-    isPremium: false,
-    author: 'user_5421',
-    createdAt: '3 часа назад',
-    city: 'Екатеринбург',
-    age: 26
-  }
-];
-
 export default function Listings() {
-  return <ListingsPage listings={mockListings} />;
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadListings();
+  }, []);
+
+  const loadListings = async () => {
+    try {
+      const data = await getListings();
+      setListings(data || []);
+    } catch (error) {
+      console.error('Failed to load listings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-24 md:pb-12 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return <ListingsPage listings={listings} />;
 }
