@@ -1,38 +1,17 @@
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadFileToS3 } from '@/lib/mediaUpload';
 import { getWalletBalance, withdrawFromWallet } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
+import MarketplaceUploadDialog from './marketplace/MarketplaceUploadDialog';
+import MarketplaceFilters from './marketplace/MarketplaceFilters';
+import MarketplaceItemCard, { type MediaItem } from './marketplace/MarketplaceItemCard';
 
 type ContentType = 'video' | 'photo' | 'audio';
 type Genre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание';
-
-interface MediaItem {
-  id: string;
-  type: ContentType;
-  title: string;
-  description: string;
-  price: number;
-  preview: string;
-  author: string;
-  isPremium: boolean;
-  duration?: string;
-  count?: number;
-  genre?: Genre;
-}
-
-const generateId = () => `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 interface MarketplacePageProps {
   generatedCredentials: { login: string; password: string; user_id?: number } | null;
@@ -41,67 +20,11 @@ interface MarketplacePageProps {
 export default function MarketplacePage({ generatedCredentials }: MarketplacePageProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadDescription, setUploadDescription] = useState('');
-  const [uploadPrice, setUploadPrice] = useState('');
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   
   const [filterType, setFilterType] = useState<ContentType | 'all'>('all');
   const [filterGenre, setFilterGenre] = useState<Genre | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!uploadTitle || !uploadDescription || !uploadPrice || !selectedFile) {
-      toast({
-        title: "Ошибка",
-        description: "Заполните все поля и выберите файл",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      const cdnUrl = await uploadFileToS3(selectedFile, (progress) => {
-        setUploadProgress(progress);
-      });
-
-      const newId = generateId();
-      
-      toast({
-        title: "Контент загружен",
-        description: `ID: ${newId}`,
-      });
-
-      setUploadTitle('');
-      setUploadDescription('');
-      setUploadPrice('');
-      setSelectedFile(null);
-      setUploadProgress(0);
-      setUploadDialogOpen(false);
-    } catch (error) {
-      toast({
-        title: "Ошибка загрузки",
-        description: error instanceof Error ? error.message : "Не удалось загрузить файл",
-        variant: "destructive"
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handlePurchase = async (itemId: string, price: number) => {
     if (!generatedCredentials?.user_id) {
@@ -156,8 +79,6 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
       setIsPurchasing(false);
     }
   };
-
-  const genres: Genre[] = ['Личное', 'Жесткое', 'Фистинг', 'Золотой дождь', 'Копро', 'Износ', 'Котики', 'Молодое', 'Извращения', 'Инцест', 'Публичное', 'Стриптиз', 'Классика', 'Минет', 'Анал', 'Беременные', 'Переодевания', 'Геи', 'Лесби', 'Секс машины', 'БДСМ', 'Связывание'];
 
   const mockMediaItems: MediaItem[] = [
     {
@@ -214,100 +135,7 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
             <h1 className="text-3xl font-bold">Магазин контента</h1>
             <p className="text-muted-foreground mt-1">Покупайте и продавайте эксклюзивный контент</p>
           </div>
-          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Icon name="Upload" size={16} />
-                Продать контент
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-xl">
-              <DialogHeader>
-                <DialogTitle>Загрузить контент на продажу</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Название</Label>
-                  <Input 
-                    placeholder="Например: Приватное видео" 
-                    value={uploadTitle}
-                    onChange={(e) => setUploadTitle(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Описание</Label>
-                  <Textarea 
-                    placeholder="Краткое описание контента..." 
-                    rows={3}
-                    value={uploadDescription}
-                    onChange={(e) => setUploadDescription(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Цена (₽)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="500"
-                    value={uploadPrice}
-                    onChange={(e) => setUploadPrice(e.target.value)}
-                    disabled={isUploading}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Файл</Label>
-                  <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*,video/*,audio/*"
-                      onChange={handleFileSelect}
-                      disabled={isUploading}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
-                      {selectedFile ? (
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">{selectedFile.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-sm text-muted-foreground mb-2">Нажмите для выбора файла</p>
-                          <p className="text-xs text-muted-foreground">Фото: JPG, PNG | Видео: MP4, MOV | Аудио: MP3, WAV</p>
-                          <p className="text-xs text-muted-foreground mt-1">До 1GB</p>
-                        </>
-                      )}
-                    </label>
-                  </div>
-                </div>
-
-                {isUploading && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Загрузка...</span>
-                      <span className="font-medium">{uploadProgress}%</span>
-                    </div>
-                    <Progress value={uploadProgress} />
-                  </div>
-                )}
-
-                <Button 
-                  className="w-full gap-2" 
-                  onClick={handleUpload}
-                  disabled={isUploading}
-                >
-                  <Icon name="ShoppingBag" size={16} />
-                  {isUploading ? 'Загрузка...' : 'Выставить на продажу'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <MarketplaceUploadDialog />
         </div>
 
         <Tabs defaultValue="marketplace" className="mb-6">
@@ -318,169 +146,23 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
           </TabsList>
           
           <TabsContent value="marketplace" className="mt-6">
-            <div className="mb-6 space-y-4">
-              <Input 
-                placeholder="Поиск контента..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-sm">Тип контента</Label>
-                  <Select value={filterType} onValueChange={(v) => setFilterType(v as ContentType | 'all')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Все типы" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Все типы</SelectItem>
-                      <SelectItem value="video">🎬 Видео</SelectItem>
-                      <SelectItem value="photo">📸 Фото</SelectItem>
-                      <SelectItem value="audio">🎵 Аудио</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-sm">Жанр</Label>
-                  <Select value={filterGenre} onValueChange={(v) => setFilterGenre(v as Genre | 'all')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Все жанры" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <SelectItem value="all">Все жанры</SelectItem>
-                      {genres.map(genre => (
-                        <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 flex-wrap">
-                {filterType !== 'all' && (
-                  <Badge variant="secondary" className="gap-1">
-                    {filterType === 'video' ? '🎬 Видео' : filterType === 'photo' ? '📸 Фото' : '🎵 Аудио'}
-                    <button onClick={() => setFilterType('all')} className="ml-1">
-                      <Icon name="X" size={12} />
-                    </button>
-                  </Badge>
-                )}
-                {filterGenre !== 'all' && (
-                  <Badge variant="secondary" className="gap-1">
-                    {filterGenre}
-                    <button onClick={() => setFilterGenre('all')} className="ml-1">
-                      <Icon name="X" size={12} />
-                    </button>
-                  </Badge>
-                )}
-                {(filterType !== 'all' || filterGenre !== 'all' || searchQuery) && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      setFilterType('all');
-                      setFilterGenre('all');
-                      setSearchQuery('');
-                    }}
-                    className="h-7 text-xs"
-                  >
-                    Сбросить все
-                  </Button>
-                )}
-              </div>
-            </div>
+            <MarketplaceFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filterType={filterType}
+              setFilterType={setFilterType}
+              filterGenre={filterGenre}
+              setFilterGenre={setFilterGenre}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
-                <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-6xl">
-                    {item.preview}
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground truncate">{item.description}</p>
-                      </div>
-                      {item.isPremium && (
-                        <Icon name="Crown" size={18} className="text-yellow-500 flex-shrink-0" />
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                      <div className="flex items-center gap-1">
-                        <Icon name="User" size={14} />
-                        <span>{item.author}</span>
-                      </div>
-                      {item.duration && (
-                        <>
-                          <span>•</span>
-                          <Icon name="Clock" size={14} />
-                          <span>{item.duration}</span>
-                        </>
-                      )}
-                      {item.count && (
-                        <>
-                          <span>•</span>
-                          <Icon name="Image" size={14} />
-                          <span>{item.count}</span>
-                        </>
-                      )}
-                    </div>
-                    
-                    {item.genre && (
-                      <Badge variant="outline" className="text-xs">
-                        {item.genre}
-                      </Badge>
-                    )}
-
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center gap-1">
-                        <Icon name="Bitcoin" size={16} className="text-primary" />
-                        <span className="font-bold text-lg">{item.price} ₽</span>
-                      </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" className="gap-2">
-                            <Icon name="ShoppingCart" size={14} />
-                            Купить
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Покупка контента</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="p-4 border rounded-lg">
-                              <h3 className="font-semibold mb-2">{item.title}</h3>
-                              <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm text-muted-foreground">ID:</span>
-                                <span className="text-xs font-mono text-muted-foreground">{item.id}</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Цена:</span>
-                                <span className="font-bold text-xl">{item.price} ₽</span>
-                              </div>
-                            </div>
-                            <div className="bg-muted/50 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">После покупки контент будет доступен в разделе "Покупки"</p>
-                            </div>
-                            <Button 
-                              className="w-full gap-2"
-                              onClick={() => handlePurchase(item.id, item.price)}
-                              disabled={isPurchasing}
-                            >
-                              <Icon name={isPurchasing ? "Loader2" : "Lock"} size={16} className={isPurchasing ? "animate-spin" : ""} />
-                              {isPurchasing ? 'Оплата...' : `Оплатить ${item.price} ₽`}
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                </Card>
+                <MarketplaceItemCard
+                  key={item.id}
+                  item={item}
+                  isPurchasing={isPurchasing}
+                  onPurchase={handlePurchase}
+                />
               ))}
             </div>
           </TabsContent>
@@ -490,10 +172,7 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
               <div className="flex flex-col items-center gap-4 text-muted-foreground">
                 <Icon name="Package" size={48} />
                 <p>У вас нет контента на продаже</p>
-                <Button className="gap-2" onClick={() => setUploadDialogOpen(true)}>
-                  <Icon name="Upload" size={16} />
-                  Загрузить первый контент
-                </Button>
+                <MarketplaceUploadDialog />
               </div>
             </Card>
           </TabsContent>
@@ -503,6 +182,12 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
               <div className="flex flex-col items-center gap-4 text-muted-foreground">
                 <Icon name="ShoppingBag" size={48} />
                 <p>У вас пока нет покупок</p>
+                <Button variant="outline" asChild>
+                  <a href="#marketplace">
+                    <Icon name="Search" size={16} className="mr-2" />
+                    Перейти в магазин
+                  </a>
+                </Button>
               </div>
             </Card>
           </TabsContent>
