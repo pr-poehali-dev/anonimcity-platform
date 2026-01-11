@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import Wallet from "./pages/Wallet";
 import Support from "./pages/Support";
 import Settings from "./pages/Settings";
+import Charity from "./pages/Charity";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminModelProfile from "./pages/AdminModelProfile";
@@ -183,6 +184,9 @@ function AppContent() {
         } />
         <Route path="/settings" element={
           isAuthenticated ? <Settings generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
+        } />
+        <Route path="/charity" element={
+          isAuthenticated ? <Charity generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
         } />
         <Route path="/admin/login" element={
           isAdminAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin onAdminLogin={handleAdminLogin} />

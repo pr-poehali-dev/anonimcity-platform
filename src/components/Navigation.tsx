@@ -36,7 +36,8 @@ export default function Navigation({
     { icon: 'MessageSquare', label: 'Сообщения', path: '/messages' },
     { icon: 'Video', label: 'Вирт', path: '/virt' },
     { icon: 'ShoppingBag', label: 'Магазин', path: '/files' },
-    { icon: 'Wallet', label: 'Кошелек', path: '/wallet' }
+    { icon: 'Wallet', label: 'Кошелек', path: '/wallet' },
+    { icon: 'Heart', label: 'Благотворительность', path: '/charity' }
   ];
 
   return (
