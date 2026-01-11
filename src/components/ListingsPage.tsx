@@ -240,9 +240,9 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                     <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
-                          <AvatarFallback className="text-xs">{listing.author.slice(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="text-xs">{(listing.author || 'AN').slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span>{listing.author}</span>
+                        <span>{listing.author || 'Аноним'}</span>
                         <span>•</span>
                         <span>{listing.createdAt}</span>
                       </div>
@@ -315,9 +315,9 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
-                          <AvatarFallback className="text-xs">{listing.author.slice(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="text-xs">{(listing.author || 'AN').slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span>{listing.author}</span>
+                        <span>{listing.author || 'Аноним'}</span>
                         <span>•</span>
                         <span>{listing.createdAt}</span>
                       </div>
