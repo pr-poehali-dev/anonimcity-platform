@@ -3,7 +3,9 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import AudioRecorder from '@/components/ui/audio-recorder';
 import { getMessages, markMessageAsRead } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -27,6 +29,8 @@ export default function MessagesPage({ generatedCredentials }: MessagesPageProps
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState('');
+  const [replyAudio, setReplyAudio] = useState<{ blob: Blob; url: string } | null>(null);
 
   useEffect(() => {
     loadMessages();
@@ -50,6 +54,8 @@ export default function MessagesPage({ generatedCredentials }: MessagesPageProps
   const handleOpenMessage = async (message: Message) => {
     setSelectedMessage(message);
     setDialogOpen(true);
+    setReplyText('');
+    setReplyAudio(null);
     
     if (!message.isRead && generatedCredentials?.user_id) {
       const success = await markMessageAsRead(generatedCredentials.user_id, message.id);
@@ -57,6 +63,22 @@ export default function MessagesPage({ generatedCredentials }: MessagesPageProps
         setMessages(messages.map(m => m.id === message.id ? { ...m, isRead: true } : m));
       }
     }
+  };
+
+  const handleSendReply = () => {
+    if (!replyText.trim() && !replyAudio) {
+      toast.error('Введите текст или запишите аудио сообщение');
+      return;
+    }
+
+    toast.success('Ответ отправлен!');
+    setReplyText('');
+    setReplyAudio(null);
+    setDialogOpen(false);
+  };
+
+  const handleRecordingComplete = (audioBlob: Blob, audioUrl: string) => {
+    setReplyAudio({ blob: audioBlob, url: audioUrl });
   };
 
   const unreadCount = messages.filter(m => !m.isRead).length;
@@ -171,10 +193,33 @@ export default function MessagesPage({ generatedCredentials }: MessagesPageProps
             <div className="prose prose-sm max-w-none">
               <p className="text-base leading-relaxed whitespace-pre-wrap">{selectedMessage?.text}</p>
             </div>
+
+            <div className="border-t pt-4 space-y-3">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                <Icon name="Reply" size={16} />
+                Ответить на сообщение
+              </h4>
+              
+              <Textarea
+                placeholder="Введите ваш ответ..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                rows={3}
+              />
+
+              <AudioRecorder 
+                onRecordingComplete={handleRecordingComplete}
+                maxDuration={180}
+              />
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Закрыть
+            </Button>
+            <Button onClick={handleSendReply} className="gap-2">
+              <Icon name="Send" size={16} />
+              Отправить ответ
             </Button>
           </div>
         </DialogContent>
