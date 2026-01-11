@@ -55,32 +55,34 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
           </div>
         )}
       </div>
-      <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold text-lg">{model.name}, {model.age}</h3>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Icon name="MapPin" size={14} />
-              {model.city}
-            </p>
+      <div className="p-4 flex flex-col h-full">
+        <div className="flex-1 space-y-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-semibold text-lg">{model.name}, {model.age}</h3>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Icon name="MapPin" size={14} />
+                {model.city}
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              <Icon name="Star" size={14} className="text-yellow-500" />
+              <span className="font-medium">{model.rating}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Icon name="Star" size={14} className="text-yellow-500" />
-            <span className="font-medium">{model.rating}</span>
+
+          <p className="text-sm text-muted-foreground line-clamp-2">{model.description}</p>
+
+          <div className="flex flex-wrap gap-2">
+            {model.tags.slice(0, 3).map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground line-clamp-2">{model.description}</p>
-
-        <div className="flex flex-wrap gap-2">
-          {model.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between pt-3 border-t">
+        <div className="flex items-center justify-between pt-3 border-t mt-auto">
           <div className="flex items-center gap-1">
             <Icon name="Bitcoin" size={16} className="text-primary" />
             <span className="font-bold text-lg">{price} ₽/мин</span>
@@ -88,14 +90,14 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-2" disabled={model.status !== 'online'}>
-                <Icon name={getServiceIcon() as any} size={14} />
-                {getServiceLabel()}
+                <Icon name="MessageCircle" size={14} />
+                Написать
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  {serviceType === 'video' ? 'Видеозвонок' : serviceType === 'audio' ? 'Аудиозвонок' : 'Переписка'} с {model.name}
+                  Переписка с {model.name}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
@@ -120,24 +122,22 @@ export default function ModelCard({ model, serviceType }: ModelCardProps) {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Минимум:</span>
-                    <span className="font-medium">{serviceType === 'chat' ? '10 минут' : '5 минут'}</span>
+                    <span className="font-medium">10 минут</span>
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t">
                     <span className="font-medium">Итого:</span>
-                    <span className="font-bold text-lg">{price * (serviceType === 'chat' ? 10 : 5)} ₽</span>
+                    <span className="font-bold text-lg">{price * 10} ₽</span>
                   </div>
                 </div>
 
-                {serviceType === 'chat' && (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Icon name="Info" size={16} className="text-blue-500 mt-0.5" />
-                      <p className="text-sm text-muted-foreground">
-                        Переписка будет доступна в течение оплаченного времени. Можно отправлять текстовые сообщения и голосовые.
-                      </p>
-                    </div>
+                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Icon name="Info" size={16} className="text-blue-500 mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      Переписка будет доступна в течение оплаченного времени. Можно отправлять текстовые сообщения и голосовые.
+                    </p>
                   </div>
-                )}
+                </div>
 
                 <Button className="w-full gap-2">
                   <Icon name="CreditCard" size={16} />
