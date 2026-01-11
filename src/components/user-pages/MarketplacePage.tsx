@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -13,9 +15,12 @@ import { uploadFileToS3 } from '@/lib/mediaUpload';
 import { getWalletBalance, withdrawFromWallet } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 
+type ContentType = 'video' | 'photo' | 'audio';
+type Genre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание';
+
 interface MediaItem {
   id: string;
-  type: 'video' | 'photo' | 'audio';
+  type: ContentType;
   title: string;
   description: string;
   price: number;
@@ -24,6 +29,7 @@ interface MediaItem {
   isPremium: boolean;
   duration?: string;
   count?: number;
+  genre?: Genre;
 }
 
 const generateId = () => `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -43,6 +49,10 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  
+  const [filterType, setFilterType] = useState<ContentType | 'all'>('all');
+  const [filterGenre, setFilterGenre] = useState<Genre | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,6 +157,8 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
     }
   };
 
+  const genres: Genre[] = ['Личное', 'Жесткое', 'Фистинг', 'Золотой дождь', 'Копро', 'Износ', 'Котики', 'Молодое', 'Извращения', 'Инцест', 'Публичное', 'Стриптиз', 'Классика', 'Минет', 'Анал', 'Беременные', 'Переодевания', 'Геи', 'Лесби', 'Секс машины', 'БДСМ', 'Связывание'];
+
   const mockMediaItems: MediaItem[] = [
     {
       id: 'media_1735980000_abc123xyz',
@@ -157,7 +169,8 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
       preview: '🎬',
       author: 'user_1234',
       isPremium: true,
-      duration: '5:30'
+      duration: '5:30',
+      genre: 'Личное'
     },
     {
       id: 'media_1735980100_def456uvw',
@@ -168,7 +181,8 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
       preview: '📸',
       author: 'user_5678',
       isPremium: false,
-      count: 15
+      count: 15,
+      genre: 'Стриптиз'
     },
     {
       id: 'media_1735980200_ghi789rst',
@@ -179,9 +193,18 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
       preview: '🎵',
       author: 'user_9012',
       isPremium: false,
-      duration: '2:15'
+      duration: '2:15',
+      genre: 'Классика'
     }
   ];
+  
+  const filteredItems = mockMediaItems.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === 'all' || item.type === filterType;
+    const matchesGenre = filterGenre === 'all' || item.genre === filterGenre;
+    return matchesSearch && matchesType && matchesGenre;
+  });
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-12">
@@ -295,15 +318,81 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
           </TabsList>
           
           <TabsContent value="marketplace" className="mt-6">
-            <div className="mb-4 flex gap-2">
-              <Input placeholder="Поиск контента..." className="flex-1" />
-              <Button variant="outline" size="icon">
-                <Icon name="Filter" size={18} />
-              </Button>
+            <div className="mb-6 space-y-4">
+              <Input 
+                placeholder="Поиск контента..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Тип контента</Label>
+                  <Select value={filterType} onValueChange={(v) => setFilterType(v as ContentType | 'all')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Все типы" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все типы</SelectItem>
+                      <SelectItem value="video">🎬 Видео</SelectItem>
+                      <SelectItem value="photo">📸 Фото</SelectItem>
+                      <SelectItem value="audio">🎵 Аудио</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm">Жанр</Label>
+                  <Select value={filterGenre} onValueChange={(v) => setFilterGenre(v as Genre | 'all')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Все жанры" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectItem value="all">Все жанры</SelectItem>
+                      {genres.map(genre => (
+                        <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                {filterType !== 'all' && (
+                  <Badge variant="secondary" className="gap-1">
+                    {filterType === 'video' ? '🎬 Видео' : filterType === 'photo' ? '📸 Фото' : '🎵 Аудио'}
+                    <button onClick={() => setFilterType('all')} className="ml-1">
+                      <Icon name="X" size={12} />
+                    </button>
+                  </Badge>
+                )}
+                {filterGenre !== 'all' && (
+                  <Badge variant="secondary" className="gap-1">
+                    {filterGenre}
+                    <button onClick={() => setFilterGenre('all')} className="ml-1">
+                      <Icon name="X" size={12} />
+                    </button>
+                  </Badge>
+                )}
+                {(filterType !== 'all' || filterGenre !== 'all' || searchQuery) && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      setFilterType('all');
+                      setFilterGenre('all');
+                      setSearchQuery('');
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    Сбросить все
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockMediaItems.map((item) => (
+              {filteredItems.map((item) => (
                 <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-6xl">
                     {item.preview}
@@ -319,9 +408,11 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Icon name="User" size={14} />
-                      <span>{item.author}</span>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <Icon name="User" size={14} />
+                        <span>{item.author}</span>
+                      </div>
                       {item.duration && (
                         <>
                           <span>•</span>
@@ -337,6 +428,12 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
                         </>
                       )}
                     </div>
+                    
+                    {item.genre && (
+                      <Badge variant="outline" className="text-xs">
+                        {item.genre}
+                      </Badge>
+                    )}
 
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="flex items-center gap-1">
