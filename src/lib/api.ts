@@ -778,3 +778,30 @@ export async function cancelStakingEarly(userId: number, stakingId: number) {
     return { success: false, error: String(error) };
   }
 }
+
+export async function withdrawFromWallet(userId: number, amount: number, currency: string, description?: string) {
+  try {
+    const response = await fetch(`${API_BASE.wallet}?action=withdraw`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        amount,
+        currency,
+        description: description || 'Списание средств',
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
