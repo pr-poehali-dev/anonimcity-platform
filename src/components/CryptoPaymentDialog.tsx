@@ -101,18 +101,18 @@ export default function CryptoPaymentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Icon name="Bitcoin" size={24} className="text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Icon name="Bitcoin" size={20} className="text-primary" />
             Оплата криптовалютой
           </DialogTitle>
-          <DialogDescription>
-            Выберите криптовалюту и отправьте точную сумму на указанный адрес
+          <DialogDescription className="text-xs">
+            Выберите криптовалюту и отправьте точную сумму
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 py-2">
           {/* Выбор валюты */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Выберите криптовалюту</label>
@@ -152,84 +152,75 @@ export default function CryptoPaymentDialog({
           {invoice && !isLoading && (
             <>
               {/* Сумма к оплате */}
-              <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground">Сумма к оплате</p>
-                  <div className="space-y-1">
-                    <p className="text-3xl font-bold text-primary">
-                      {selectedCrypto?.icon} {invoice.amount_crypto.toFixed(8)}
-                    </p>
-                    <p className="text-lg text-muted-foreground">
-                      {invoice.crypto_currency}
-                    </p>
-                  </div>
-                  <p className="text-sm text-muted-foreground pt-2">
-                    ≈ {invoice.amount_rub} ₽
+              <Card className="p-4 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-muted-foreground">Сумма к оплате</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {selectedCrypto?.icon} {invoice.amount_crypto.toFixed(8)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Курс: 1 {invoice.crypto_currency} = {invoice.exchange_rate.toLocaleString('ru-RU')} ₽
+                    ≈ {invoice.amount_rub} ₽
                   </p>
                 </div>
               </Card>
 
               {/* QR код */}
-              <Card className="p-6">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="bg-white p-4 rounded-lg">
+              <Card className="p-3">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="bg-white p-2 rounded-lg">
                     <QRCode 
                       value={invoice.payment_address} 
-                      size={200}
+                      size={150}
                       level="M"
                     />
                   </div>
                   <p className="text-xs text-center text-muted-foreground">
-                    Отсканируйте QR-код вашим криптокошельком
+                    Отсканируйте QR-код
                   </p>
                 </div>
               </Card>
 
               {/* Адрес для оплаты */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Адрес для оплаты</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Адрес для оплаты</label>
                 <div className="flex gap-2">
-                  <div className="flex-1 bg-muted p-3 rounded-lg break-all text-sm font-mono">
+                  <div className="flex-1 bg-muted p-2 rounded-lg break-all text-xs font-mono">
                     {invoice.payment_address}
                   </div>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={handleCopyAddress}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 h-8 w-8"
                   >
-                    <Icon name={copied ? "Check" : "Copy"} size={16} />
+                    <Icon name={copied ? "Check" : "Copy"} size={14} />
                   </Button>
                 </div>
               </div>
 
               {/* Предупреждения */}
-              <Card className="p-4 bg-amber-500/10 border-amber-500/30">
-                <div className="flex gap-3">
-                  <Icon name="AlertTriangle" size={20} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-2 text-sm">
+              <Card className="p-3 bg-amber-500/10 border-amber-500/30">
+                <div className="flex gap-2">
+                  <Icon name="AlertTriangle" size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-xs">
                     <p className="font-medium text-amber-700 dark:text-amber-400">
                       Важно:
                     </p>
-                    <ul className="space-y-1 text-muted-foreground">
-                      <li>• Отправьте точную сумму {invoice.amount_crypto.toFixed(8)} {invoice.crypto_currency}</li>
-                      <li>• Используйте только сеть {invoice.crypto_currency}</li>
-                      <li>• Платеж активируется после 1 подтверждения</li>
-                      <li>• Адрес действителен 24 часа</li>
+                    <ul className="space-y-0.5 text-muted-foreground">
+                      <li>• Точная сумма {invoice.amount_crypto.toFixed(8)} {invoice.crypto_currency}</li>
+                      <li>• Только сеть {invoice.crypto_currency}</li>
+                      <li>• Активация после 1 подтверждения</li>
                     </ul>
                   </div>
                 </div>
               </Card>
 
               {/* Статус */}
-              <Card className="p-4">
+              <Card className="p-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium">Ожидание оплаты</span>
+                    <span className="text-xs font-medium">Ожидание оплаты</span>
                   </div>
                   <span className="text-xs text-muted-foreground">ID: {invoice.invoice_id.slice(0, 8)}...</span>
                 </div>
@@ -237,17 +228,18 @@ export default function CryptoPaymentDialog({
             </>
           )}
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Отмена
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="flex-1" size="sm">
+              Закрыть
             </Button>
             {invoice && (
               <Button 
-                className="flex-1 gap-2" 
+                className="flex-1 gap-1" 
+                size="sm"
                 onClick={() => window.open(`https://blockchain.info/address/${invoice.payment_address}`, '_blank')}
               >
-                <Icon name="ExternalLink" size={16} />
-                Проверить транзакцию
+                <Icon name="ExternalLink" size={14} />
+                Проверить
               </Button>
             )}
           </div>
