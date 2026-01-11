@@ -142,7 +142,18 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4 mt-6">
-            {sortedListings.map((listing) => (
+            {sortedListings.length === 0 ? (
+              <Card className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Icon name="Search" size={64} className="opacity-20" />
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Объявлений не найдено</h3>
+                    <p className="text-sm">Попробуйте изменить фильтры поиска или создайте свое объявление</p>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              sortedListings.map((listing) => (
               <Card key={listing.id} className={`p-6 transition-all ${
                 listing.isPremium 
                   ? 'bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/40 hover:border-primary/60 shadow-lg' 
@@ -257,11 +268,22 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                   </Dialog>
                 </div>
               </Card>
-            ))}
+            )))}
           </TabsContent>
 
           <TabsContent value="premium" className="space-y-4 mt-6">
-            {listings.filter(l => l.isPremium).map((listing) => (
+            {listings.filter(l => l.isPremium).length === 0 ? (
+              <Card className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Icon name="Crown" size={64} className="opacity-20" />
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Premium объявлений пока нет</h3>
+                    <p className="text-sm">Станьте первым! Создайте премиум объявление</p>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              listings.filter(l => l.isPremium).map((listing) => (
               <Card key={listing.id} className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/30 hover:border-primary/50 transition-all">
                 <div className="flex justify-between items-start gap-4">
                   <div className="flex-1 space-y-3">
@@ -308,7 +330,7 @@ export default function ListingsPage({ listings }: ListingsPageProps) {
                   </Button>
                 </div>
               </Card>
-            ))}
+            )))}
           </TabsContent>
 
           <TabsContent value="my" className="mt-6">
