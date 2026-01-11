@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { createListing } from '@/lib/api';
+import CryptoPaymentDialog from '@/components/CryptoPaymentDialog';
 
 type Service = 'Секс Выезд' | 'Секс Апартаменты' | 'Ужин' | 'Вечеринка' | 'Виртуальный секс';
 type ListingType = 'Индивидуалка' | 'Агенство';
@@ -37,6 +38,7 @@ export default function CreateListing({ generatedCredentials }: CreateListingPro
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showCryptoPayment, setShowCryptoPayment] = useState(false);
 
   const handleServiceToggle = (service: Service) => {
     setSelectedServices(prev =>
@@ -267,15 +269,27 @@ export default function CreateListing({ generatedCredentials }: CreateListingPro
                   checked={isPremium}
                   onCheckedChange={(checked) => setIsPremium(checked as boolean)}
                 />
-                <Label htmlFor="premium" className="cursor-pointer">
+                <Label htmlFor="premium" className="cursor-pointer flex-1">
                   <div className="flex items-center gap-2">
                     <Icon name="Crown" size={18} className="text-yellow-500" />
-                    <span>Премиум объявление (500 ₽)</span>
+                    <span>Премиум объявление (999 ₽)</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Выделенное размещение в топе списка
+                    Выделенное размещение в топе списка + фото + аудио
                   </p>
                 </Label>
+                {isPremium && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setShowCryptoPayment(true)}
+                  >
+                    <Icon name="Bitcoin" size={16} />
+                    Оплатить криптой
+                  </Button>
+                )}
               </div>
 
               {isPremium && (
@@ -362,6 +376,18 @@ export default function CreateListing({ generatedCredentials }: CreateListingPro
           </CardContent>
         </Card>
       </div>
+
+      <CryptoPaymentDialog
+        isOpen={showCryptoPayment}
+        onClose={() => setShowCryptoPayment(false)}
+        amountRub={999}
+        onPaymentComplete={(invoiceId) => {
+          toast({
+            title: "Платеж создан",
+            description: `ID счета: ${invoiceId}`,
+          });
+        }}
+      />
     </div>
   );
 }

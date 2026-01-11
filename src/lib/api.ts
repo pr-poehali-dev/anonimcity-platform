@@ -5,6 +5,7 @@ const API_BASE = {
   support: 'https://functions.poehali.dev/5ee71053-8c99-45ac-ae98-99ccdb3b681d',
   admin: 'https://functions.poehali.dev/804dda5f-70e7-45e2-9dfb-e051e0f70c47',
   wallet: 'https://functions.poehali.dev/5755cd8a-ea9e-49d5-a18f-8956edb4b2a7',
+  cryptoPayment: 'https://functions.poehali.dev/2441db33-301a-4fc0-8562-c375664cb244',
 };
 
 export async function registerUser(login: string, password: string) {
@@ -469,6 +470,60 @@ export async function deleteApplication(id: number) {
   } catch (error) {
     console.error('Delete application error:', error);
     return false;
+  }
+}
+
+// Crypto Payment API functions
+export async function createCryptoInvoice(
+  userId: number,
+  cryptoCurrency: string,
+  amountRub: number,
+  listingId?: number
+) {
+  try {
+    const response = await fetch(`${API_BASE.cryptoPayment}?action=create_invoice`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': String(userId),
+      },
+      body: JSON.stringify({
+        crypto_currency: cryptoCurrency,
+        amount_rub: amountRub,
+        listing_id: listingId,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function checkCryptoPaymentStatus(invoiceId: string) {
+  try {
+    const response = await fetch(
+      `${API_BASE.cryptoPayment}?action=check_payment&invoice_id=${invoiceId}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to check payment status');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Check payment status error:', error);
+    return null;
   }
 }
 

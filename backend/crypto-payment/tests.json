@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Create BTC invoice",
+      "method": "POST",
+      "path": "/?action=create_invoice",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "body": {
+        "crypto_currency": "BTC",
+        "amount_rub": 999,
+        "listing_id": 1
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "invoice_id": "string",
+        "payment_address": "string",
+        "crypto_currency": "string",
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get payment address",
+      "method": "GET",
+      "path": "/?action=get_address&currency=ETH",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "crypto_currency": "ETH",
+        "payment_address": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
