@@ -83,44 +83,7 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
     }
   };
 
-  const mockMediaItems: MediaItem[] = [
-    {
-      id: 'media_1735980000_abc123xyz',
-      type: 'video',
-      title: 'Приватное видео #1',
-      description: 'Эксклюзивный контент',
-      price: 500,
-      preview: '🎬',
-      author: 'user_1234',
-      isPremium: true,
-      duration: '5:30',
-      genre: 'Личное'
-    },
-    {
-      id: 'media_1735980100_def456uvw',
-      type: 'photo',
-      title: 'Фотосет "Вечер"',
-      description: '15 фотографий',
-      price: 200,
-      preview: '📸',
-      author: 'user_5678',
-      isPremium: false,
-      count: 15,
-      genre: 'Эротика'
-    },
-    {
-      id: 'media_1735980200_ghi789rst',
-      type: 'audio',
-      title: 'Голосовое сообщение',
-      description: 'Приватная запись',
-      price: 100,
-      preview: '🎵',
-      author: 'user_9012',
-      isPremium: false,
-      duration: '2:15',
-      genre: 'ASMR'
-    }
-  ];
+  const mockMediaItems: MediaItem[] = [];
   
   const filteredItems = mockMediaItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
