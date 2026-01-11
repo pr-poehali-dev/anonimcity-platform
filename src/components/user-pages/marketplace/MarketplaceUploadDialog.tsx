@@ -4,12 +4,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFileToS3 } from '@/lib/mediaUpload';
 
 const generateId = () => `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+type ContentType = 'video' | 'photo' | 'audio';
+type VideoGenre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание' | 'Госпожа' | 'Унижение' | 'Подглядывание' | 'Скрытая камера' | 'Зоо';
+type PhotoGenre = 'Портрет' | 'Ню' | 'Эротика' | 'Белье' | 'Косплей' | 'Фетиш' | 'Арт' | 'Студия' | 'Улица' | 'Природа';
+type AudioGenre = 'ASMR' | 'Разговор' | 'Стоны' | 'Ролевая игра' | 'Истории' | 'Инструкции' | 'Фантазии' | 'Медитация';
+type Genre = VideoGenre | PhotoGenre | AudioGenre;
+
+const videoGenres: VideoGenre[] = ['Личное', 'Жесткое', 'Фистинг', 'Золотой дождь', 'Копро', 'Износ', 'Котики', 'Молодое', 'Извращения', 'Инцест', 'Публичное', 'Стриптиз', 'Классика', 'Минет', 'Анал', 'Беременные', 'Переодевания', 'Геи', 'Лесби', 'Секс машины', 'БДСМ', 'Связывание', 'Госпожа', 'Унижение', 'Подглядывание', 'Скрытая камера', 'Зоо'];
+const photoGenres: PhotoGenre[] = ['Портрет', 'Ню', 'Эротика', 'Белье', 'Косплей', 'Фетиш', 'Арт', 'Студия', 'Улица', 'Природа'];
+const audioGenres: AudioGenre[] = ['ASMR', 'Разговор', 'Стоны', 'Ролевая игра', 'Истории', 'Инструкции', 'Фантазии', 'Медитация'];
 
 export default function MarketplaceUploadDialog() {
   const { toast } = useToast();
@@ -20,19 +31,38 @@ export default function MarketplaceUploadDialog() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [contentType, setContentType] = useState<ContentType | ''>('');
+  const [selectedGenre, setSelectedGenre] = useState<Genre | ''>('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      
+      if (file.type.startsWith('video/')) {
+        setContentType('video');
+      } else if (file.type.startsWith('image/')) {
+        setContentType('photo');
+      } else if (file.type.startsWith('audio/')) {
+        setContentType('audio');
+      }
     }
   };
 
+  const getGenresByType = (): Genre[] => {
+    if (contentType === 'video') return videoGenres;
+    if (contentType === 'photo') return photoGenres;
+    if (contentType === 'audio') return audioGenres;
+    return [];
+  };
+
+  const availableGenres = getGenresByType();
+
   const handleUpload = async () => {
-    if (!uploadTitle || !uploadDescription || !uploadPrice || !selectedFile) {
+    if (!uploadTitle || !uploadDescription || !uploadPrice || !selectedFile || !selectedGenre) {
       toast({
         title: "Ошибка",
-        description: "Заполните все поля и выберите файл",
+        description: "Заполните все поля, выберите файл и жанр",
         variant: "destructive"
       });
       return;
@@ -58,6 +88,8 @@ export default function MarketplaceUploadDialog() {
       setUploadPrice('');
       setSelectedFile(null);
       setUploadProgress(0);
+      setContentType('');
+      setSelectedGenre('');
       setUploadDialogOpen(false);
     } catch (error) {
       toast({
@@ -112,6 +144,22 @@ export default function MarketplaceUploadDialog() {
               disabled={isUploading}
             />
           </div>
+
+          {contentType && (
+            <div className="space-y-2">
+              <Label>Жанр</Label>
+              <Select value={selectedGenre} onValueChange={(v) => setSelectedGenre(v as Genre)} disabled={isUploading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите жанр" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {availableGenres.map(genre => (
+                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Файл</Label>
