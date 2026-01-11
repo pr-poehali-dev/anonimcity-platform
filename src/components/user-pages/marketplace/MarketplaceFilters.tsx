@@ -6,7 +6,10 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 
 type ContentType = 'video' | 'photo' | 'audio';
-type Genre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание' | 'Госпожа' | 'Унижение' | 'Подглядывание' | 'Скрытая камера' | 'Зоо';
+type VideoGenre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание' | 'Госпожа' | 'Унижение' | 'Подглядывание' | 'Скрытая камера' | 'Зоо';
+type PhotoGenre = 'Портрет' | 'Ню' | 'Эротика' | 'Белье' | 'Косплей' | 'Фетиш' | 'Арт' | 'Студия' | 'Улица' | 'Природа';
+type AudioGenre = 'ASMR' | 'Разговор' | 'Стоны' | 'Ролевая игра' | 'Истории' | 'Инструкции' | 'Фантазии' | 'Медитация';
+type Genre = VideoGenre | PhotoGenre | AudioGenre;
 
 interface MarketplaceFiltersProps {
   searchQuery: string;
@@ -17,7 +20,9 @@ interface MarketplaceFiltersProps {
   setFilterGenre: (genre: Genre | 'all') => void;
 }
 
-const genres: Genre[] = ['Личное', 'Жесткое', 'Фистинг', 'Золотой дождь', 'Копро', 'Износ', 'Котики', 'Молодое', 'Извращения', 'Инцест', 'Публичное', 'Стриптиз', 'Классика', 'Минет', 'Анал', 'Беременные', 'Переодевания', 'Геи', 'Лесби', 'Секс машины', 'БДСМ', 'Связывание', 'Госпожа', 'Унижение', 'Подглядывание', 'Скрытая камера', 'Зоо'];
+const videoGenres: VideoGenre[] = ['Личное', 'Жесткое', 'Фистинг', 'Золотой дождь', 'Копро', 'Износ', 'Котики', 'Молодое', 'Извращения', 'Инцест', 'Публичное', 'Стриптиз', 'Классика', 'Минет', 'Анал', 'Беременные', 'Переодевания', 'Геи', 'Лесби', 'Секс машины', 'БДСМ', 'Связывание', 'Госпожа', 'Унижение', 'Подглядывание', 'Скрытая камера', 'Зоо'];
+const photoGenres: PhotoGenre[] = ['Портрет', 'Ню', 'Эротика', 'Белье', 'Косплей', 'Фетиш', 'Арт', 'Студия', 'Улица', 'Природа'];
+const audioGenres: AudioGenre[] = ['ASMR', 'Разговор', 'Стоны', 'Ролевая игра', 'Истории', 'Инструкции', 'Фантазии', 'Медитация'];
 
 export default function MarketplaceFilters({ 
   searchQuery, 
@@ -27,6 +32,15 @@ export default function MarketplaceFilters({
   filterGenre, 
   setFilterGenre 
 }: MarketplaceFiltersProps) {
+  const getGenresByType = (): Genre[] => {
+    if (filterType === 'video') return videoGenres;
+    if (filterType === 'photo') return photoGenres;
+    if (filterType === 'audio') return audioGenres;
+    return [...videoGenres, ...photoGenres, ...audioGenres];
+  };
+
+  const availableGenres = getGenresByType();
+
   return (
     <div className="mb-6 space-y-4">
       <Input 
@@ -59,7 +73,7 @@ export default function MarketplaceFilters({
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               <SelectItem value="all">Все жанры</SelectItem>
-              {genres.map(genre => (
+              {availableGenres.map(genre => (
                 <SelectItem key={genre} value={genre}>{genre}</SelectItem>
               ))}
             </SelectContent>

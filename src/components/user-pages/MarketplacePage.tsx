@@ -11,7 +11,10 @@ import MarketplaceFilters from './marketplace/MarketplaceFilters';
 import MarketplaceItemCard, { type MediaItem } from './marketplace/MarketplaceItemCard';
 
 type ContentType = 'video' | 'photo' | 'audio';
-type Genre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание' | 'Госпожа' | 'Унижение' | 'Подглядывание' | 'Скрытая камера' | 'Зоо';
+type VideoGenre = 'Личное' | 'Жесткое' | 'Фистинг' | 'Золотой дождь' | 'Копро' | 'Износ' | 'Котики' | 'Молодое' | 'Извращения' | 'Инцест' | 'Публичное' | 'Стриптиз' | 'Классика' | 'Минет' | 'Анал' | 'Беременные' | 'Переодевания' | 'Геи' | 'Лесби' | 'Секс машины' | 'БДСМ' | 'Связывание' | 'Госпожа' | 'Унижение' | 'Подглядывание' | 'Скрытая камера' | 'Зоо';
+type PhotoGenre = 'Портрет' | 'Ню' | 'Эротика' | 'Белье' | 'Косплей' | 'Фетиш' | 'Арт' | 'Студия' | 'Улица' | 'Природа';
+type AudioGenre = 'ASMR' | 'Разговор' | 'Стоны' | 'Ролевая игра' | 'Истории' | 'Инструкции' | 'Фантазии' | 'Медитация';
+type Genre = VideoGenre | PhotoGenre | AudioGenre;
 
 interface MarketplacePageProps {
   generatedCredentials: { login: string; password: string; user_id?: number } | null;
@@ -103,7 +106,7 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
       author: 'user_5678',
       isPremium: false,
       count: 15,
-      genre: 'Стриптиз'
+      genre: 'Эротика'
     },
     {
       id: 'media_1735980200_ghi789rst',
@@ -115,7 +118,7 @@ export default function MarketplacePage({ generatedCredentials }: MarketplacePag
       author: 'user_9012',
       isPremium: false,
       duration: '2:15',
-      genre: 'Классика'
+      genre: 'ASMR'
     }
   ];
   
