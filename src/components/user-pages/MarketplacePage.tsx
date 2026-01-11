@@ -10,6 +10,8 @@ import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFileToS3 } from '@/lib/mediaUpload';
+import { getWalletBalance, withdrawFromWallet } from '@/lib/api';
+import { useNavigate } from 'react-router-dom';
 
 interface MediaItem {
   id: string;
@@ -26,8 +28,13 @@ interface MediaItem {
 
 const generateId = () => `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-export default function MarketplacePage() {
+interface MarketplacePageProps {
+  generatedCredentials: { login: string; password: string; user_id?: number } | null;
+}
+
+export default function MarketplacePage({ generatedCredentials }: MarketplacePageProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadDescription, setUploadDescription] = useState('');
   const [uploadPrice, setUploadPrice] = useState('');
@@ -35,6 +42,7 @@ export default function MarketplacePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +90,60 @@ export default function MarketplacePage() {
       });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handlePurchase = async (itemId: string, price: number) => {
+    if (!generatedCredentials?.user_id) {
+      toast({
+        title: "Ошибка",
+        description: "Необходимо авторизоваться",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsPurchasing(true);
+
+    try {
+      const balanceData = await getWalletBalance(generatedCredentials.user_id);
+      const currentBalance = balanceData?.balance_rub || 0;
+
+      if (currentBalance < price) {
+        toast({
+          title: "Недостаточно средств",
+          description: `На балансе ${currentBalance} ₽, а нужно ${price} ₽`,
+          variant: "destructive",
+          action: {
+            label: "Пополнить кошелек",
+            onClick: () => navigate('/wallet')
+          }
+        });
+        return;
+      }
+
+      const result = await withdrawFromWallet(generatedCredentials.user_id, price, 'RUB', `Покупка контента ${itemId}`);
+
+      if (result.success) {
+        toast({
+          title: "Покупка успешна!",
+          description: `Контент доступен в разделе "Покупки"`,
+        });
+      } else {
+        toast({
+          title: "Ошибка покупки",
+          description: result.error || "Не удалось списать средства",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось выполнить покупку",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
@@ -308,9 +370,13 @@ export default function MarketplacePage() {
                             <div className="bg-muted/50 p-4 rounded-lg">
                               <p className="text-sm text-muted-foreground">После покупки контент будет доступен в разделе "Покупки"</p>
                             </div>
-                            <Button className="w-full gap-2">
-                              <Icon name="Lock" size={16} />
-                              Оплатить {item.price} ₽
+                            <Button 
+                              className="w-full gap-2"
+                              onClick={() => handlePurchase(item.id, item.price)}
+                              disabled={isPurchasing}
+                            >
+                              <Icon name={isPurchasing ? "Loader2" : "Lock"} size={16} className={isPurchasing ? "animate-spin" : ""} />
+                              {isPurchasing ? 'Оплата...' : `Оплатить ${item.price} ₽`}
                             </Button>
                           </div>
                         </DialogContent>

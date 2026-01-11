@@ -20,7 +20,7 @@ export default function UserPages({ page, generatedCredentials, twoFactorEnabled
   }
 
   if (page === 'files') {
-    return <MarketplacePage />;
+    return <MarketplacePage generatedCredentials={generatedCredentials} />;
   }
 
   if (page === 'profile' || page === 'wallet' || page === 'support' || page === 'settings') {
