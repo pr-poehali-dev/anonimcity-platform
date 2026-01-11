@@ -289,19 +289,7 @@ export default function Charity({ generatedCredentials }: CharityProps) {
               ))}
             </div>
           </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                <Icon name="Heart" size={32} className="text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Нет активных проектов</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                В данный момент нет активных благотворительных проектов. Вы можете сделать общее пожертвование
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        ) : null}
 
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
