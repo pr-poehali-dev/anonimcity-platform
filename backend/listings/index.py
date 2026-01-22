@@ -13,7 +13,7 @@ def handler(event: dict, context) -> dict:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Admin-Action'
             },
             'body': ''
         }
@@ -202,6 +202,16 @@ def handler(event: dict, context) -> dict:
         elif method == 'DELETE':
             headers = event.get('headers', {})
             user_id = headers.get('x-user-id') or headers.get('X-User-Id')
+            admin_action = headers.get('x-admin-action') or headers.get('X-Admin-Action')
+            
+            if admin_action == 'delete_all':
+                cur.execute(f"DELETE FROM {schema}.listings")
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'success': True, 'message': 'All listings deleted'})
+                }
             
             if not user_id:
                 return {
