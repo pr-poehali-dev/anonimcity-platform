@@ -1,539 +1,117 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminTabs from '@/components/admin/AdminTabs';
-import AdminDialogs, { type Category, type Listing } from '@/components/admin/AdminDialogs';
+import AdminDialogs from '@/components/admin/AdminDialogs';
 import CreateListingDialog from '@/components/admin/dialogs/CreateListingDialog';
-import type { Model } from '@/components/admin/tabs/AdminContentTabs';
-import { getCategories, createCategory, updateCategory, deleteCategory, getModels, createModel, updateModel, deleteModel, getListings } from '@/lib/api';
+import { useAdminData } from '@/hooks/useAdminData';
+import { useAdminHandlers } from '@/hooks/useAdminHandlers';
+import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 
 interface AdminDashboardProps {
   onAdminLogout: () => void;
 }
 
 export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const [stats] = useState({
-    totalUsers: 1247,
-    activeListings: 342,
-    totalRevenue: 125430,
-    pendingModeration: 18,
-    totalMessages: 5623,
-    reportedContent: 7,
+  const data = useAdminData();
+  
+  const handlers = useAdminHandlers({
+    categories: data.categories,
+    models: data.models,
+    listings: data.listings,
+    setModels: data.setModels,
+    editingCategory: data.editingCategory,
+    setEditingCategory: data.setEditingCategory,
+    newCategory: data.newCategory,
+    setNewCategory: data.setNewCategory,
+    setCategoryDialog: data.setCategoryDialog,
+    editingListing: data.editingListing,
+    setEditingListing: data.setEditingListing,
+    setListingDialog: data.setListingDialog,
+    setViewingListing: data.setViewingListing,
+    setViewDialog: data.setViewDialog,
+    setCreateListingDialog: data.setCreateListingDialog,
+    loadCategories: data.loadCategories,
+    loadListingsData: data.loadListingsData,
+    onAdminLogout,
   });
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [isLoadingListings, setIsLoadingListings] = useState(true);
-
-  const [recentUsers] = useState([
-    { id: 1, login: 'anon_x7k2p9', registered: '2024-01-10 14:23', status: 'active' },
-    { id: 2, login: 'anon_m3n8q1', registered: '2024-01-10 13:45', status: 'active' },
-    { id: 3, login: 'anon_p9k2m7', registered: '2024-01-10 12:10', status: 'blocked' },
-    { id: 4, login: 'anon_q2l8n3', registered: '2024-01-10 11:30', status: 'active' },
-  ]);
-
-  const [models, setModels] = useState<Model[]>([]);
-  const [isLoadingModels, setIsLoadingModels] = useState(true);
-
-  const [categoryDialog, setCategoryDialog] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [newCategory, setNewCategory] = useState({ name: '', description: '', icon: 'Tag' });
-
-  const [listingDialog, setListingDialog] = useState(false);
-  const [editingListing, setEditingListing] = useState<Listing | null>(null);
-  const [viewDialog, setViewDialog] = useState(false);
-  const [viewingListing, setViewingListing] = useState<Listing | null>(null);
-  const [selectedTab, setSelectedTab] = useState('moderation');
-  const [createListingDialog, setCreateListingDialog] = useState(false);
-
-  useEffect(() => {
-    loadCategories();
-    loadModels();
-    loadListingsData();
-  }, []);
-
-  const loadCategories = async () => {
-    setIsLoadingCategories(true);
-    try {
-      const data = await getCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error('Failed to load categories:', error);
-    } finally {
-      setIsLoadingCategories(false);
-    }
-  };
-
-  const loadModels = async () => {
-    setIsLoadingModels(true);
-    try {
-      const data = await getModels();
-      setModels(data);
-    } catch (error) {
-      console.error('Failed to load models:', error);
-    } finally {
-      setIsLoadingModels(false);
-    }
-  };
-
-  const loadListingsData = async () => {
-    setIsLoadingListings(true);
-    try {
-      const data = await getListings();
-      setListings(data.map((l: any) => ({
-        id: l.id,
-        title: l.title,
-        description: l.description,
-        author: `user_${l.user_id}`,
-        created: l.created_at,
-        type: 'regular',
-        category: l.category,
-        price: l.price,
-        status: l.status || 'active',
-        createdByAdmin: false
-      })));
-    } catch (error) {
-      console.error('Failed to load listings:', error);
-    } finally {
-      setIsLoadingListings(false);
-    }
-  };
-
-  const [messages] = useState([
-    { id: 1, modelId: 1, status: 'new' },
-    { id: 2, modelId: 1, status: 'read' },
-    { id: 3, modelId: 2, status: 'replied' },
-    { id: 4, modelId: 4, status: 'new' },
-    { id: 5, modelId: 1, status: 'replied' },
-  ]);
-
-  const adminModelIds = models.map(m => m.id);
-  const newMessagesCount = messages.filter(m => adminModelIds.includes(m.modelId) && m.status === 'new').length;
-
-  const [responses] = useState([
-    { id: 1, listingId: 1, status: 'new' },
-    { id: 2, listingId: 3, status: 'read' },
-    { id: 3, listingId: 1, status: 'replied' },
-    { id: 4, listingId: 3, status: 'new' },
-    { id: 5, listingId: 1, status: 'replied' },
-  ]);
-
-  const adminListingIds = listings.filter(l => l.createdByAdmin).map(l => l.id);
-  const newResponsesCount = responses.filter(r => adminListingIds.includes(r.listingId) && r.status === 'new').length;
-
-  const [supportTickets, setSupportTickets] = useState<any[]>([]);
-
-  useEffect(() => {
-    const tickets = JSON.parse(localStorage.getItem('support_tickets') || '[]');
-    setSupportTickets(tickets);
-  }, [selectedTab]);
-
-  const newSupportTicketsCount = supportTickets.filter(t => t.status === 'new').length;
-
-  const prevNewMessagesCount = useRef(newMessagesCount);
-  const prevNewResponsesCount = useRef(newResponsesCount);
-
-  useEffect(() => {
-    const soundEnabled = localStorage.getItem('admin_sound_notifications') === 'true';
-    
-    if (soundEnabled) {
-      if (newMessagesCount > prevNewMessagesCount.current) {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeeSwwMUKXh8LhjHAY4kte8zHksBSR3x/DdkEAKFF606OunVxILRp/g8r5sIQUrg87y2Yg2CBlou+3mnkwMDFCl4fC4YxwGOJLXvMx5LAUkd8fw3ZBAChRctOjrp1cSC0af4PK+ayEFK4PO8tmINgga6bvt555MEAxQpd/wuGMcBjiS17zMeSwFJHfH8N2QQAoUXLTo66dXEgtGn+Dyvmwfbyq==');
-        audio.play().catch(() => {});
-      }
-      
-      if (newResponsesCount > prevNewResponsesCount.current) {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeeSwwMUKXh8LhjHAY4kte8zHksBSR3x/DdkEAKFF606OunVxILRp/g8r5sIQUrg87y2Yg2CBlou+3mnkwMDFCl4fC4YxwGOJLXvMx5LAUkd8fw3ZBAChRctOjrp1cSC0af4PK+ayEFK4PO8tmINgga6bvt555MEAxQpd/wuGMcBjiS17zMeSwFJHfH8N2QQAoUXLTo66dXEgtGn+Dyvmwfbyq==');
-        audio.play().catch(() => {});
-      }
-    }
-    
-    prevNewMessagesCount.current = newMessagesCount;
-    prevNewResponsesCount.current = newResponsesCount;
-  }, [newMessagesCount, newResponsesCount]);
-
-  const handleLogout = () => {
-    onAdminLogout();
-    navigate('/admin/login');
-    toast({
-      title: "Выход выполнен",
-      description: "Вы вышли из панели администратора",
-    });
-  };
-
-  const handleAddCategory = async () => {
-    if (!newCategory.name) {
-      toast({ title: "Ошибка", description: "Введите название категории", variant: "destructive" });
-      return;
-    }
-
-    const result = await createCategory(newCategory.name, newCategory.icon, '');
-    
-    if (result.success) {
-      await loadCategories();
-      setNewCategory({ name: '', description: '', icon: 'Tag' });
-      setCategoryDialog(false);
-      toast({ title: "Категория добавлена", description: `"${newCategory.name}" успешно создана` });
-    } else {
-      toast({ title: "Ошибка", description: result.error, variant: "destructive" });
-    }
-  };
-
-  const handleEditCategory = async () => {
-    if (!editingCategory || !newCategory.name) return;
-
-    const result = await updateCategory(editingCategory.id, newCategory.name, newCategory.icon, '');
-    
-    if (result.success) {
-      await loadCategories();
-      setEditingCategory(null);
-      setNewCategory({ name: '', description: '', icon: 'Tag' });
-      setCategoryDialog(false);
-      toast({ title: "Категория обновлена", description: "Изменения сохранены" });
-    } else {
-      toast({ title: "Ошибка", description: result.error, variant: "destructive" });
-    }
-  };
-
-  const handleDeleteCategory = async (id: number) => {
-    const category = categories.find(c => c.id === id);
-    const success = await deleteCategory(id);
-    
-    if (success) {
-      await loadCategories();
-      toast({ title: "Категория удалена", description: `"${category?.name}" была удалена` });
-    } else {
-      toast({ title: "Ошибка", description: "Не удалось удалить категорию", variant: "destructive" });
-    }
-  };
-
-  const openCategoryDialog = (category?: Category) => {
-    if (category) {
-      setEditingCategory(category);
-      setNewCategory({ name: category.name, description: category.description, icon: category.icon });
-    } else {
-      setEditingCategory(null);
-      setNewCategory({ name: '', description: '', icon: 'Tag' });
-    }
-    setCategoryDialog(true);
-  };
-
-  const handleApprove = async (id: number) => {
-    try {
-      const response = await fetch(`https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Action': 'approve'
-        },
-        body: JSON.stringify({ listing_id: id, status: 'active' })
-      });
-      
-      if (response.ok) {
-        await loadListingsData();
-        toast({ title: "Объявление одобрено", description: "Объявление опубликовано на платформе" });
-      }
-    } catch (error) {
-      toast({ title: "Ошибка", description: "Не удалось одобрить объявление", variant: "destructive" });
-    }
-  };
-
-  const handleReject = async (id: number) => {
-    try {
-      const response = await fetch(`https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89?id=${id}`, {
-        method: 'DELETE',
-        headers: {
-          'X-Admin-Action': 'delete'
-        }
-      });
-      
-      if (response.ok) {
-        await loadListingsData();
-        toast({ title: "Объявление отклонено", description: "Автору отправлено уведомление", variant: "destructive" });
-      }
-    } catch (error) {
-      toast({ title: "Ошибка", description: "Не удалось отклонить объявление", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteListing = async (id: number) => {
-    const listing = listings.find(l => l.id === id);
-    
-    try {
-      const response = await fetch(`https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89?id=${id}`, {
-        method: 'DELETE',
-        headers: {
-          'X-Admin-Action': 'delete'
-        }
-      });
-      
-      if (response.ok) {
-        await loadListingsData();
-        toast({ title: "Объявление удалено", description: `"${listing?.title}" было удалено` });
-      }
-    } catch (error) {
-      toast({ title: "Ошибка", description: "Не удалось удалить объявление", variant: "destructive" });
-    }
-  };
-
-  const handleCreateModel = (modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
-    const newModel: Model = {
-      ...modelData,
-      id: Date.now(),
-      listingsCount: 0,
-      totalRevenue: 0,
-      createdByAdmin: true,
-    };
-    const updatedModels = [...models, newModel];
-    setModels(updatedModels);
-    localStorage.setItem('admin_models', JSON.stringify(updatedModels.filter(m => m.createdByAdmin)));
-  };
-
-  const handleUpdateModel = (id: number, modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
-    const updatedModels = models.map(m => 
-      m.id === id 
-        ? { ...m, ...modelData }
-        : m
-    );
-    setModels(updatedModels);
-    localStorage.setItem('admin_models', JSON.stringify(updatedModels.filter(m => m.createdByAdmin)));
-  };
-
-  const handleDeleteModel = (id: number) => {
-    const updatedModels = models.filter(m => m.id !== id);
-    setModels(updatedModels);
-    localStorage.setItem('admin_models', JSON.stringify(updatedModels.filter(m => m.createdByAdmin)));
-  };
-
-  const openEditListing = (listing: Listing) => {
-    setEditingListing(listing);
-    setListingDialog(true);
-  };
-
-  const openViewListing = (listing: Listing) => {
-    setViewingListing(listing);
-    setViewDialog(true);
-  };
-
-  const handleSaveListing = async () => {
-    if (!editingListing) return;
-
-    try {
-      const response = await fetch('https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Action': 'update'
-        },
-        body: JSON.stringify({
-          id: editingListing.id,
-          title: editingListing.title,
-          description: editingListing.description,
-          price: editingListing.price
-        })
-      });
-
-      if (response.ok) {
-        await loadListingsData();
-        setListingDialog(false);
-        setEditingListing(null);
-        toast({ title: "Объявление обновлено", description: "Изменения сохранены" });
-      } else {
-        throw new Error('Failed to update listing');
-      }
-    } catch (error) {
-      toast({ title: "Ошибка", description: "Не удалось обновить объявление", variant: "destructive" });
-    }
-  };
-
-  const handleCreateListing = async (listingData: {
-    modelId: number;
-    title: string;
-    description: string;
-    category: string;
-    price: string;
-    isPremium: boolean;
-    status: 'active' | 'pending';
-  }) => {
-    const model = models.find(m => m.id === listingData.modelId);
-    if (!model) return;
-
-    try {
-      const response = await fetch('https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': String(model.id)
-        },
-        body: JSON.stringify({
-          title: listingData.title,
-          description: listingData.description,
-          category: listingData.category,
-          price: Number(listingData.price),
-          currency: 'RUB',
-          location: '',
-          images: []
-        })
-      });
-
-      if (response.ok) {
-        await loadListingsData();
-        setCreateListingDialog(false);
-        toast({ 
-          title: "Объявление создано", 
-          description: `${listingData.isPremium ? 'Premium' : 'Обычное'} объявление успешно создано для ${model.name}` 
-        });
-      } else {
-        throw new Error('Failed to create listing');
-      }
-    } catch (error) {
-      toast({ 
-        title: "Ошибка", 
-        description: "Не удалось создать объявление", 
-        variant: "destructive" 
-      });
-    }
-  };
-
-  const openCreateListingDialog = () => {
-    setCreateListingDialog(true);
-  };
-
-  const pendingListings = listings.filter(l => l.status === 'pending');
-  const activeListings = listings.filter(l => l.status === 'active');
+  useAdminNotifications(data.newMessagesCount, data.newResponsesCount);
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Icon name="Shield" size={20} className="text-background" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Админ-панель</h1>
-                <p className="text-xs text-muted-foreground">Anonimcity Management</p>
-              </div>
+      <header className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <Icon name="Shield" size={20} className="text-white" />
             </div>
-            <div className="flex items-center gap-3">
-              {newSupportTicketsCount > 0 && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={() => setSelectedTab('support')} 
-                  className="gap-2 relative"
-                >
-                  <Icon name="Headphones" size={16} />
-                  <span className="hidden md:inline">Support</span>
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {newSupportTicketsCount}
-                  </span>
-                </Button>
-              )}
-              {newMessagesCount > 0 && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={() => setSelectedTab('messages')} 
-                  className="gap-2 relative"
-                >
-                  <Icon name="Mail" size={16} />
-                  <span className="hidden md:inline">Новые сообщения</span>
-                  <span className="md:hidden">Сообщения</span>
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {newMessagesCount}
-                  </span>
-                </Button>
-              )}
-              {newResponsesCount > 0 && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={() => setSelectedTab('responses')} 
-                  className="gap-2 relative"
-                >
-                  <Icon name="MessageSquare" size={16} />
-                  <span className="hidden md:inline">Новые ответы</span>
-                  <span className="md:hidden">Ответы</span>
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {newResponsesCount}
-                  </span>
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
-                <Icon name="LogOut" size={16} />
-                Выйти
-              </Button>
+            <div>
+              <h1 className="text-xl font-bold">Админ-панель</h1>
+              <p className="text-sm text-muted-foreground">Anonimcity Platform</p>
             </div>
           </div>
+          <Button variant="outline" onClick={handlers.handleLogout} className="gap-2">
+            <Icon name="LogOut" size={16} />
+            Выход
+          </Button>
         </div>
-      </nav>
+      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <AdminStats stats={{
-          totalUsers: stats.totalUsers,
-          activeListings: stats.activeListings,
-          totalRevenue: stats.totalRevenue,
-          pendingModeration: pendingListings.length,
-        }} />
-
+      <main className="container mx-auto px-4 py-8">
+        <AdminStats stats={data.stats} />
         <AdminTabs
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-          pendingListings={pendingListings}
-          activeListings={activeListings}
-          allListings={listings}
-          categories={categories}
-          recentUsers={recentUsers}
-          openViewListing={openViewListing}
-          handleApprove={handleApprove}
-          handleReject={handleReject}
-          openEditListing={openEditListing}
-          handleDeleteListing={handleDeleteListing}
-          openCategoryDialog={openCategoryDialog}
-          handleDeleteCategory={handleDeleteCategory}
-          models={models}
-          onCreateModel={handleCreateModel}
-          onUpdateModel={handleUpdateModel}
-          onDeleteModel={handleDeleteModel}
-          onCreateListing={openCreateListingDialog}
+          selectedTab={data.selectedTab}
+          setSelectedTab={data.setSelectedTab}
+          pendingListings={data.pendingListings}
+          activeListings={data.activeListings}
+          categories={data.categories}
+          isLoadingCategories={data.isLoadingCategories}
+          models={data.models}
+          isLoadingModels={data.isLoadingModels}
+          recentUsers={data.recentUsers}
+          newMessagesCount={data.newMessagesCount}
+          newResponsesCount={data.newResponsesCount}
+          newSupportTicketsCount={data.newSupportTicketsCount}
+          supportTickets={data.supportTickets}
+          openViewListing={handlers.openViewListing}
+          handleApprove={handlers.handleApprove}
+          handleReject={handlers.handleReject}
+          openEditListing={handlers.openEditListing}
+          handleDeleteListing={handlers.handleDeleteListing}
+          onCreateListing={handlers.openCreateListingDialog}
+          openCategoryDialog={handlers.openCategoryDialog}
+          handleDeleteCategory={handlers.handleDeleteCategory}
+          handleCreateModel={handlers.handleCreateModel}
+          handleUpdateModel={handlers.handleUpdateModel}
+          handleDeleteModel={handlers.handleDeleteModel}
         />
-      </div>
+      </main>
 
       <AdminDialogs
-        categoryDialog={categoryDialog}
-        setCategoryDialog={setCategoryDialog}
-        editingCategory={editingCategory}
-        newCategory={newCategory}
-        setNewCategory={setNewCategory}
-        handleAddCategory={handleAddCategory}
-        handleEditCategory={handleEditCategory}
-        listingDialog={listingDialog}
-        setListingDialog={setListingDialog}
-        editingListing={editingListing}
-        setEditingListing={setEditingListing}
-        handleSaveListing={handleSaveListing}
-        viewDialog={viewDialog}
-        setViewDialog={setViewDialog}
-        viewingListing={viewingListing}
-        handleApprove={handleApprove}
-        handleReject={handleReject}
+        categoryDialog={data.categoryDialog}
+        setCategoryDialog={data.setCategoryDialog}
+        editingCategory={data.editingCategory}
+        newCategory={data.newCategory}
+        setNewCategory={data.setNewCategory}
+        handleAddCategory={handlers.handleAddCategory}
+        handleEditCategory={handlers.handleEditCategory}
+        listingDialog={data.listingDialog}
+        setListingDialog={data.setListingDialog}
+        editingListing={data.editingListing}
+        setEditingListing={data.setEditingListing}
+        handleSaveListing={handlers.handleSaveListing}
+        viewDialog={data.viewDialog}
+        setViewDialog={data.setViewDialog}
+        viewingListing={data.viewingListing}
       />
 
       <CreateListingDialog
-        open={createListingDialog}
-        onOpenChange={setCreateListingDialog}
-        models={models}
-        onSubmit={handleCreateListing}
+        open={data.createListingDialog}
+        onOpenChange={data.setCreateListingDialog}
+        models={data.models}
+        categories={data.categories}
+        onCreateListing={handlers.handleCreateListing}
       />
     </div>
   );
