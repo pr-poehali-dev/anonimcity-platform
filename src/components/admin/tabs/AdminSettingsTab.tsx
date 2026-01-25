@@ -162,6 +162,36 @@ export default function AdminSettingsTab() {
     }
   };
 
+  const handleDeleteAllMessages = async () => {
+    if (!confirm('Вы уверены? Это удалит ВСЕ сообщения из базы данных. Это действие необратимо!')) return;
+    
+    try {
+      const response = await fetch('https://functions.poehali.dev/0ec69c03-40fd-4089-854e-7e6a575f4c19', {
+        method: 'DELETE',
+        headers: {
+          'X-Admin-Action': 'delete_all'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Успешно",
+          description: "Все сообщения удалены из базы данных",
+        });
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить сообщения",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <TabsContent value="settings" className="space-y-4">
@@ -264,6 +294,15 @@ export default function AdminSettingsTab() {
                   <p className="text-sm text-muted-foreground">Полная очистка базы данных объявлений</p>
                 </div>
                 <Button variant="destructive" onClick={handleDeleteAllListings}>
+                  Удалить все
+                </Button>
+              </div>
+              <div className="flex items-center justify-between p-4 border border-destructive/30 rounded-lg bg-destructive/5">
+                <div>
+                  <h3 className="font-semibold">Удалить все сообщения</h3>
+                  <p className="text-sm text-muted-foreground">Полная очистка базы данных сообщений</p>
+                </div>
+                <Button variant="destructive" onClick={handleDeleteAllMessages}>
                   Удалить все
                 </Button>
               </div>
