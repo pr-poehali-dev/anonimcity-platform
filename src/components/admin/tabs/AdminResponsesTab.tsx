@@ -96,7 +96,7 @@ export default function AdminResponsesTab({ listings }: AdminResponsesTabProps) 
   ]);
 
   // Фильтруем ответы только для объявлений, созданных через админку
-  const adminListingIds = listings.filter(l => l.createdByAdmin).map(l => l.id);
+  const adminListingIds = (listings || []).filter(l => l.createdByAdmin).map(l => l.id);
   const responsesForAdminListings = responses.filter(r => adminListingIds.includes(r.listingId));
 
   const filteredResponses = selectedListing === 'all'
