@@ -188,6 +188,9 @@ function AppContent() {
         <Route path="/charity" element={
           isAuthenticated ? <Charity generatedCredentials={generatedCredentials} twoFactorEnabled={twoFactorEnabled} setTwoFactorEnabled={setTwoFactorEnabled} /> : <Navigate to="/" replace />
         } />
+        <Route path="/admin" element={
+          <Navigate to={isAdminAuthenticated ? "/admin/dashboard" : "/admin/login"} replace />
+        } />
         <Route path="/admin/login" element={
           isAdminAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin onAdminLogin={handleAdminLogin} />
         } />
