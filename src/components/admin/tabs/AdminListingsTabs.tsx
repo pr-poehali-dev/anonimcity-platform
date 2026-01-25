@@ -63,7 +63,7 @@ export default function AdminListingsTabs({
                       </div>
                       <p className="text-sm text-muted-foreground mb-1">{listing.description}</p>
                       <p className="text-sm text-muted-foreground">
-                        Автор: {listing.author} • {listing.created} • {listing.price.toLocaleString()} ₽
+                        Автор: {listing.author} • {listing.created} • {listing.price ? listing.price.toLocaleString() : '0'} ₽
                       </p>
                     </div>
                     <div className="flex gap-2 flex-wrap">
@@ -162,7 +162,7 @@ export default function AdminListingsTabs({
                     </div>
                     <p className="text-sm text-muted-foreground mb-1">{listing.description}</p>
                     <p className="text-sm text-muted-foreground">
-                      Автор: {listing.author} • {listing.price.toLocaleString()} ₽
+                      Автор: {listing.author} • {listing.price ? listing.price.toLocaleString() : '0'} ₽
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
