@@ -147,16 +147,10 @@ def handler(event: dict, context) -> dict:
         elif method == 'PUT':
             headers = event.get('headers', {})
             user_id = headers.get('x-user-id') or headers.get('X-User-Id')
-            
-            if not user_id:
-                return {
-                    'statusCode': 401,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Unauthorized'})
-                }
+            admin_action = headers.get('x-admin-action') or headers.get('X-Admin-Action')
             
             body = json.loads(event.get('body', '{}'))
-            listing_id = body.get('id')
+            listing_id = body.get('listing_id') or body.get('id')
             status = body.get('status')
             
             if not listing_id:
@@ -166,30 +160,62 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'listing id required'})
                 }
             
-            if status:
-                cur.execute(f"""
-                    UPDATE {schema}.listings 
-                    SET status = %s, updated_at = %s
-                    WHERE id = %s AND user_id = %s
-                """, (status, datetime.now(), int(listing_id), int(user_id)))
-            else:
-                update_fields = []
-                params = []
-                
-                for field in ['title', 'description', 'price', 'location']:
-                    if field in body:
-                        update_fields.append(f"{field} = %s")
-                        params.append(body[field])
-                
-                if update_fields:
-                    update_fields.append("updated_at = %s")
-                    params.extend([datetime.now(), int(listing_id), int(user_id)])
-                    
+            if admin_action in ['approve', 'update']:
+                if status:
                     cur.execute(f"""
                         UPDATE {schema}.listings 
-                        SET {', '.join(update_fields)}
+                        SET status = %s, updated_at = %s
+                        WHERE id = %s
+                    """, (status, datetime.now(), int(listing_id)))
+                else:
+                    update_fields = []
+                    params = []
+                    
+                    for field in ['title', 'description', 'price', 'location']:
+                        if field in body:
+                            update_fields.append(f"{field} = %s")
+                            params.append(body[field])
+                    
+                    if update_fields:
+                        update_fields.append("updated_at = %s")
+                        params.extend([datetime.now(), int(listing_id)])
+                        
+                        cur.execute(f"""
+                            UPDATE {schema}.listings 
+                            SET {', '.join(update_fields)}
+                            WHERE id = %s
+                        """, params)
+            elif user_id:
+                if status:
+                    cur.execute(f"""
+                        UPDATE {schema}.listings 
+                        SET status = %s, updated_at = %s
                         WHERE id = %s AND user_id = %s
-                    """, params)
+                    """, (status, datetime.now(), int(listing_id), int(user_id)))
+                else:
+                    update_fields = []
+                    params = []
+                    
+                    for field in ['title', 'description', 'price', 'location']:
+                        if field in body:
+                            update_fields.append(f"{field} = %s")
+                            params.append(body[field])
+                    
+                    if update_fields:
+                        update_fields.append("updated_at = %s")
+                        params.extend([datetime.now(), int(listing_id), int(user_id)])
+                        
+                        cur.execute(f"""
+                            UPDATE {schema}.listings 
+                            SET {', '.join(update_fields)}
+                            WHERE id = %s AND user_id = %s
+                        """, params)
+            else:
+                return {
+                    'statusCode': 401,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Unauthorized'})
+                }
             
             conn.commit()
             

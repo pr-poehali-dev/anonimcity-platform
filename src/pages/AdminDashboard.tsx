@@ -226,20 +226,62 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     setCategoryDialog(true);
   };
 
-  const handleApprove = (id: number) => {
-    setListings(listings.map(l => l.id === id ? { ...l, status: 'active' as const } : l));
-    toast({ title: "Объявление одобрено", description: "Объявление опубликовано на платформе" });
+  const handleApprove = async (id: number) => {
+    try {
+      const response = await fetch(`https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Action': 'approve'
+        },
+        body: JSON.stringify({ listing_id: id, status: 'active' })
+      });
+      
+      if (response.ok) {
+        await loadListingsData();
+        toast({ title: "Объявление одобрено", description: "Объявление опубликовано на платформе" });
+      }
+    } catch (error) {
+      toast({ title: "Ошибка", description: "Не удалось одобрить объявление", variant: "destructive" });
+    }
   };
 
-  const handleReject = (id: number) => {
-    setListings(listings.map(l => l.id === id ? { ...l, status: 'rejected' as const } : l));
-    toast({ title: "Объявление отклонено", description: "Автору отправлено уведомление", variant: "destructive" });
+  const handleReject = async (id: number) => {
+    try {
+      const response = await fetch(`https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Admin-Action': 'delete'
+        }
+      });
+      
+      if (response.ok) {
+        await loadListingsData();
+        toast({ title: "Объявление отклонено", description: "Автору отправлено уведомление", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Ошибка", description: "Не удалось отклонить объявление", variant: "destructive" });
+    }
   };
 
-  const handleDeleteListing = (id: number) => {
+  const handleDeleteListing = async (id: number) => {
     const listing = listings.find(l => l.id === id);
-    setListings(listings.filter(l => l.id !== id));
-    toast({ title: "Объявление удалено", description: `"${listing?.title}" было удалено` });
+    
+    try {
+      const response = await fetch(`https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Admin-Action': 'delete'
+        }
+      });
+      
+      if (response.ok) {
+        await loadListingsData();
+        toast({ title: "Объявление удалено", description: `"${listing?.title}" было удалено` });
+      }
+    } catch (error) {
+      toast({ title: "Ошибка", description: "Не удалось удалить объявление", variant: "destructive" });
+    }
   };
 
   const handleCreateModel = (modelData: Omit<Model, 'id' | 'listingsCount' | 'totalRevenue'>) => {
@@ -281,16 +323,38 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     setViewDialog(true);
   };
 
-  const handleSaveListing = () => {
+  const handleSaveListing = async () => {
     if (!editingListing) return;
 
-    setListings(listings.map(l => l.id === editingListing.id ? editingListing : l));
-    setListingDialog(false);
-    setEditingListing(null);
-    toast({ title: "Объявление обновлено", description: "Изменения сохранены" });
+    try {
+      const response = await fetch('https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Action': 'update'
+        },
+        body: JSON.stringify({
+          id: editingListing.id,
+          title: editingListing.title,
+          description: editingListing.description,
+          price: editingListing.price
+        })
+      });
+
+      if (response.ok) {
+        await loadListingsData();
+        setListingDialog(false);
+        setEditingListing(null);
+        toast({ title: "Объявление обновлено", description: "Изменения сохранены" });
+      } else {
+        throw new Error('Failed to update listing');
+      }
+    } catch (error) {
+      toast({ title: "Ошибка", description: "Не удалось обновить объявление", variant: "destructive" });
+    }
   };
 
-  const handleCreateListing = (listingData: {
+  const handleCreateListing = async (listingData: {
     modelId: number;
     title: string;
     description: string;
@@ -302,31 +366,41 @@ export default function AdminDashboard({ onAdminLogout }: AdminDashboardProps) {
     const model = models.find(m => m.id === listingData.modelId);
     if (!model) return;
 
-    const newListing: Listing = {
-      id: Date.now(),
-      title: listingData.title,
-      description: listingData.description,
-      author: model.login,
-      created: new Date().toLocaleString('ru-RU', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).replace(',', ''),
-      type: listingData.isPremium ? 'premium' : 'regular',
-      category: listingData.category,
-      price: Number(listingData.price),
-      status: listingData.status,
-      createdByAdmin: true,
-    };
+    try {
+      const response = await fetch('https://functions.poehali.dev/283b32ee-5900-4830-aac0-199572d71a89', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': String(model.id)
+        },
+        body: JSON.stringify({
+          title: listingData.title,
+          description: listingData.description,
+          category: listingData.category,
+          price: Number(listingData.price),
+          currency: 'RUB',
+          location: '',
+          images: []
+        })
+      });
 
-    setListings([newListing, ...listings]);
-    setCreateListingDialog(false);
-    toast({ 
-      title: "Объявление создано", 
-      description: `${listingData.isPremium ? 'Premium' : 'Обычное'} объявление "успешно создано" для ${model.name}` 
-    });
+      if (response.ok) {
+        await loadListingsData();
+        setCreateListingDialog(false);
+        toast({ 
+          title: "Объявление создано", 
+          description: `${listingData.isPremium ? 'Premium' : 'Обычное'} объявление успешно создано для ${model.name}` 
+        });
+      } else {
+        throw new Error('Failed to create listing');
+      }
+    } catch (error) {
+      toast({ 
+        title: "Ошибка", 
+        description: "Не удалось создать объявление", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const openCreateListingDialog = () => {
