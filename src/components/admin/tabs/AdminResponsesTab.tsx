@@ -168,7 +168,7 @@ export default function AdminResponsesTab({ listings }: AdminResponsesTabProps) 
   const newResponsesCount = responsesForAdminListings.filter(r => r.status === 'new').length;
 
   // Получаем уникальные объявления для фильтра
-  const adminListings = listings.filter(l => l.createdByAdmin && adminListingIds.includes(l.id));
+  const adminListings = (listings || []).filter(l => l.createdByAdmin && adminListingIds.includes(l.id));
 
   return (
     <TabsContent value="responses" className="space-y-6">
